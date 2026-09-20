@@ -21,7 +21,13 @@ The displays show actual API distributions. Videos follow **simulation time and 
 ## Results
 
 <!-- RESULTS:START -->
-Evaluation in progress. Final results are generated from completed fixed-seed episodes, including failures.
+| Task | JEV | Rule baseline | JEV Wilson 95% |
+|---|---:|---:|---|
+| Pick & place | **10/10** | 10/10 | 72.2%–100.0% |
+| Surface push | **10/10** | 10/10 | 72.2%–100.0% |
+| Stack on a pedestal | **8/10** | 10/10 | 49.0%–94.3% |
+
+Fixed seeds 0–9 per task and policy; **60/60 episodes complete**. Every completed episode remains in the denominator.
 <!-- RESULTS:END -->
 
 The independent rule baseline uses the same physical scene and success checks. It is never a fallback for JEV. See the [protocol and failure analysis](docs/evaluation.md) and [machine-readable summary](site/data/results.json). Ten seeds per task is a small sample, not a claim of general-purpose manipulation.

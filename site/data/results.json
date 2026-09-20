@@ -1,5 +1,5 @@
 {
-  "source_sha256": "pending",
+  "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d",
   "seeds": [
     0,
     1,
@@ -12,62 +12,107 @@
     8,
     9
   ],
-  "complete": false,
-  "episodes": 0,
+  "complete": true,
+  "episodes": 60,
   "expected": 60,
   "tasks": {
     "pick_place": {
-      "jev": {
-        "episodes": 0,
-        "successes": 0,
-        "wilson_95": [
-          null,
-          null
-        ]
-      },
       "rule": {
-        "episodes": 0,
-        "successes": 0,
+        "episodes": 10,
+        "successes": 10,
+        "success_rate": 1.0,
         "wilson_95": [
-          null,
-          null
-        ]
+          0.7224672001371218,
+          0.9999999999999999
+        ],
+        "failures": [],
+        "mean_wall_s": 6.158649202715606,
+        "mean_decisions": 130.1,
+        "api_p50_ms": null,
+        "api_p95_ms": null
+      },
+      "jev": {
+        "episodes": 10,
+        "successes": 10,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.7224672001371218,
+          0.9999999999999999
+        ],
+        "failures": [],
+        "mean_wall_s": 224.86429497878999,
+        "mean_decisions": 128.3,
+        "api_p50_ms": 1237.9693128168583,
+        "api_p95_ms": 4552.838461659849
       }
     },
     "push": {
-      "jev": {
-        "episodes": 0,
-        "successes": 0,
-        "wilson_95": [
-          null,
-          null
-        ]
-      },
       "rule": {
-        "episodes": 0,
-        "successes": 0,
+        "episodes": 10,
+        "successes": 10,
+        "success_rate": 1.0,
         "wilson_95": [
-          null,
-          null
-        ]
+          0.7224672001371218,
+          0.9999999999999999
+        ],
+        "failures": [],
+        "mean_wall_s": 2.174180818814784,
+        "mean_decisions": 88.9,
+        "api_p50_ms": null,
+        "api_p95_ms": null
+      },
+      "jev": {
+        "episodes": 10,
+        "successes": 10,
+        "success_rate": 1.0,
+        "wilson_95": [
+          0.7224672001371218,
+          0.9999999999999999
+        ],
+        "failures": [],
+        "mean_wall_s": 126.75434781871736,
+        "mean_decisions": 81.7,
+        "api_p50_ms": 1227.775389328599,
+        "api_p95_ms": 3509.165225923057
       }
     },
     "stack": {
-      "jev": {
-        "episodes": 0,
-        "successes": 0,
-        "wilson_95": [
-          null,
-          null
-        ]
-      },
       "rule": {
-        "episodes": 0,
-        "successes": 0,
+        "episodes": 10,
+        "successes": 10,
+        "success_rate": 1.0,
         "wilson_95": [
-          null,
-          null
-        ]
+          0.7224672001371218,
+          0.9999999999999999
+        ],
+        "failures": [],
+        "mean_wall_s": 5.896125816041604,
+        "mean_decisions": 125.2,
+        "api_p50_ms": null,
+        "api_p95_ms": null
+      },
+      "jev": {
+        "episodes": 10,
+        "successes": 8,
+        "success_rate": 0.8,
+        "wilson_95": [
+          0.49016247153665027,
+          0.943317848545623
+        ],
+        "failures": [
+          {
+            "seed": 4,
+            "reason": "policy_error"
+          },
+          {
+            "seed": 7,
+            "reason": "policy_error"
+          }
+        ],
+        "mean_wall_s": 182.4278402757831,
+        "mean_decisions": 126.9,
+        "api_p50_ms": 1247.199126984924,
+        "api_p95_ms": 2169.4835017435225
       }
     }
   }

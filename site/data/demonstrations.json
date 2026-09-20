@@ -12,7 +12,8 @@
     "source_sha256": "1a900d716af509e91feef598731e523dfab69e87cccc9c0665d21c07d174a3b2",
     "video_sha256": "221d15c586ec4a44d441127dcadb9f0697d5f62e5dd64340135ba7514483cab8",
     "timing": "simulation time; API waits omitted",
-    "processing": "H.264 compression only; all frames preserved"
+    "processing": "H.264 compression only; all frames preserved",
+    "source_note": "Demo source precedes release-only package version and empty-grasp metric fixes; task physics and model prompts are unchanged."
   },
   {
     "task": "push",
@@ -27,7 +28,8 @@
     "source_sha256": "1a900d716af509e91feef598731e523dfab69e87cccc9c0665d21c07d174a3b2",
     "video_sha256": "b25ff8b4fadc45052efdd8cf637fcb60e2cbd09b805df4deaa35fa7ce533d25b",
     "timing": "simulation time; API waits omitted",
-    "processing": "H.264 compression only; all frames preserved"
+    "processing": "H.264 compression only; all frames preserved",
+    "source_note": "Demo source precedes release-only package version and empty-grasp metric fixes; task physics and model prompts are unchanged."
   },
   {
     "task": "stack",
@@ -42,6 +44,7 @@
     "source_sha256": "1a900d716af509e91feef598731e523dfab69e87cccc9c0665d21c07d174a3b2",
     "video_sha256": "a21701684084b7106f0dd5edc96fb4917327c2126dc6ba8e0d2ee2d612f6aa67",
     "timing": "simulation time; API waits omitted",
-    "processing": "H.264 compression only; all frames preserved"
+    "processing": "H.264 compression only; all frames preserved",
+    "source_note": "Demo source precedes release-only package version and empty-grasp metric fixes; task physics and model prompts are unchanged."
   }
 ]
