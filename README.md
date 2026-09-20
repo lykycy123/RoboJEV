@@ -2,13 +2,29 @@
 
 <p align="center"><strong>Two-stage JEV control of a Franka Panda in MuJoCo.</strong><br>Measured simulator state → task intent → Cartesian motion and gripper commands.</p>
 
-<p align="center"><a href="https://lykycy123.github.io/RoboJEV/">Interactive showcase</a> · <a href="#experiments">Experiments</a> · <a href="#quick-start">Quick start</a> · <a href="docs/evaluation.md">Evaluation</a> · <a href="README.zh-CN.md">中文</a></p>
+<p align="center"><a href="https://lykycy123.github.io/RoboJEV/">Interactive showcase</a> · <a href="#todo-list">Todo list</a> · <a href="#demo-presentation">Demo presentation</a> · <a href="#quick-start">Quick start</a> · <a href="docs/evaluation.md">Evaluation</a> · <a href="README.zh-CN.md">中文</a></p>
 
 <p align="center"><a href="LICENSE"><img alt="License: Apache 2.0" src="https://img.shields.io/badge/License-Apache_2.0-41d2e3?style=flat-square"></a> <img alt="Python 3.11" src="https://img.shields.io/badge/Python-3.11-93a5b9?style=flat-square"> <img alt="MuJoCo 3.3.7" src="https://img.shields.io/badge/MuJoCo-3.3.7-93a5b9?style=flat-square"> <a href="https://github.com/lykycy123/RoboJEV/actions/workflows/ci.yml"><img alt="Tests" src="https://github.com/lykycy123/RoboJEV/actions/workflows/ci.yml/badge.svg"></a></p>
 
 RoboJEV is a small, inspectable robotics laboratory. JEV receives **structured simulator state, not images**, selects an immediate intent, then selects X/Y/Z directions and a gripper command. A Cartesian controller executes the action using real MuJoCo contacts. Each task has independent physical success checks; model answers cannot declare success.
 
-## Experiments
+## Todo list
+
+**Completed**
+
+- [x] Implement two-stage JEV control: intent selection followed by XYZ and gripper commands.
+- [x] Integrate MuJoCo and Franka Panda with structured state observations and physical contact.
+- [x] Demonstrate pick & place, surface pushing, and stacking on a fixed pedestal with real JEV decisions.
+- [x] Complete 60 evaluation episodes across three tasks, with an independent rule baseline and documented failures.
+- [x] Publish demonstration videos, reproducible code, bilingual documentation, and an interactive showcase.
+
+**Next steps**
+
+- [ ] Extend simulation experiments to more manipulation tasks and scene configurations.
+- [ ] Explore additional simulation platforms and evaluate the framework across simulators.
+- [ ] Adapt the framework for real robotic arms and validate control on physical hardware.
+
+## Demo presentation
 
 | Pick & place | Surface push | Stack on a pedestal |
 |:---:|:---:|:---:|
@@ -29,6 +45,8 @@ The displays show actual API distributions. Videos follow **simulation time and 
 
 Fixed seeds 0–9 per task and policy; **60/60 episodes complete**. Every completed episode remains in the denominator.
 <!-- RESULTS:END -->
+
+**JEV Wilson 95%** is a confidence interval for the success rate under the evaluated conditions. With only ten trials per task, even 10/10 successes leaves substantial uncertainty; it does not guarantee future success.
 
 The independent rule baseline uses the same physical scene and success checks. It is never a fallback for JEV. See the [protocol and failure analysis](docs/evaluation.md) and [machine-readable summary](site/data/results.json). Ten seeds per task is a small sample, not a claim of general-purpose manipulation.
 

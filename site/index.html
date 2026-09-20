@@ -32,6 +32,7 @@
 <section id="results" class="wrap section">
   <div class="section-head"><p class="eyebrow">03 / EVIDENCE</p><h2>Results, with the denominator.</h2><p>Ten fixed seeds per task and policy. JEV and the independent rule baseline share physics and success checks. Failed trials remain in the results.</p></div>
   <div class="table-scroll"><table><thead><tr><th>Task</th><th>JEV</th><th>Rule baseline</th><th>JEV 95% Wilson interval</th></tr></thead><tbody id="results-body"><tr><td colspan="4">Loading the published evaluation…</td></tr></tbody></table></div>
+  <p class="caption">The Wilson 95% interval expresses uncertainty in JEV's success rate under the evaluated conditions. With only ten trials per task, even 10/10 successes does not guarantee future success.</p>
   <p id="results-note" class="caption"></p><p><a href="data/results.json">Evaluation summary JSON ↗</a> <span class="separator">/</span> <a href="https://github.com/lykycy123/RoboJEV/blob/main/docs/evaluation.md">Protocol &amp; failure analysis ↗</a></p>
 </section>
 <section class="wrap section start"><div><p class="eyebrow">04 / REPRODUCE</p><h2>Run the lab.</h2><p>Python 3.11, MuJoCo and a JEV API key for model control.<br>The rule baseline runs without a key or GPU.</p><a class="button" href="https://github.com/lykycy123/RoboJEV#quick-start">Installation &amp; commands ↗</a></div><pre><code>robojev --task pick_place --policy rule

@@ -11,6 +11,7 @@ dist/
 runtime/
 runs/
 artifacts/
+# Local research, legacy source, transfer bundles, and preview dependencies.
 private/
 assets/panda/assets/
 assets/panda/panda.xml
