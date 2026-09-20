@@ -1,0 +1,3 @@
+task: stack
+max_decisions: 250
+jev_stages: 2

@@ -1,0 +1,47 @@
+[
+  {
+    "task": "pick_place",
+    "policy": "jev",
+    "seed": 1000,
+    "success": true,
+    "decisions": 132,
+    "simulation_time_s": 47.842,
+    "wall_s": 283.1140732760541,
+    "frames": 1436,
+    "fps": 30.0,
+    "source_sha256": "1a900d716af509e91feef598731e523dfab69e87cccc9c0665d21c07d174a3b2",
+    "video_sha256": "221d15c586ec4a44d441127dcadb9f0697d5f62e5dd64340135ba7514483cab8",
+    "timing": "simulation time; API waits omitted",
+    "processing": "H.264 compression only; all frames preserved"
+  },
+  {
+    "task": "push",
+    "policy": "jev",
+    "seed": 1000,
+    "success": true,
+    "decisions": 79,
+    "simulation_time_s": 16.0,
+    "wall_s": 121.65802218625322,
+    "frames": 481,
+    "fps": 30.0,
+    "source_sha256": "1a900d716af509e91feef598731e523dfab69e87cccc9c0665d21c07d174a3b2",
+    "video_sha256": "b25ff8b4fadc45052efdd8cf637fcb60e2cbd09b805df4deaa35fa7ce533d25b",
+    "timing": "simulation time; API waits omitted",
+    "processing": "H.264 compression only; all frames preserved"
+  },
+  {
+    "task": "stack",
+    "policy": "jev",
+    "seed": 1000,
+    "success": true,
+    "decisions": 142,
+    "simulation_time_s": 49.874,
+    "wall_s": 300.4170781560242,
+    "frames": 1497,
+    "fps": 30.0,
+    "source_sha256": "1a900d716af509e91feef598731e523dfab69e87cccc9c0665d21c07d174a3b2",
+    "video_sha256": "a21701684084b7106f0dd5edc96fb4917327c2126dc6ba8e0d2ee2d612f6aa67",
+    "timing": "simulation time; API waits omitted",
+    "processing": "H.264 compression only; all frames preserved"
+  }
+]

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="RoboJEV: a reproducible MuJoCo laboratory for two-stage JEV control of a Franka Panda using structured simulator state.">
+  <title>RoboJEV — State. Intent. Motion.</title>
+  <link rel="icon" href="media/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="wrap"><a class="brand" href="#"><img src="media/icon.svg" alt="" width="30" height="30">RoboJEV</a><div><a href="#experiments">Experiments</a><a href="#method">Method</a><a href="#results">Results</a><a href="https://github.com/lykycy123/RoboJEV">GitHub ↗</a></div></nav>
+<main>
+<header class="wrap hero">
+  <div class="eyebrow"><span></span> AN OPEN ROBOTICS LAB · MUJOCO × JEV</div>
+  <h1>State.<br>Intent.<br><em>Motion.</em></h1>
+  <div class="hero-copy"><p>A language-driven controller meets contact-rich physics. One Franka Panda. Three tasks. Every action, observable.</p><a class="button" href="#experiments">Explore the experiments <span>↘</span></a><p class="small">Structured simulator state in. Cartesian motion out.<br>No camera input. No learned robot policy weights.</p></div>
+  <div class="hero-index">01—03<br><span>ROBOT MANIPULATION</span></div>
+</header>
+<section id="experiments" class="wrap section">
+  <div class="section-head"><p class="eyebrow">01 / EXPERIMENTS</p><h2>Three ways to move matter.</h2><p>The same four action heads control translation and fingers. Each task has its own physical success checks.</p></div>
+  <div class="experiments">
+    <article><div class="card-heading"><span>01</span><h3>Pick &amp; place</h3><span class="tag">GRASP</span></div><video controls playsinline preload="none" poster="media/pick_place.jpg" aria-label="Real JEV pick and place demonstration"><source src="media/pick_place.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/pick_place.mp4">Download MP4</a>.</video><p>Lift the cube, carry it into the marked region, release, and let it settle.</p><div class="card-meta">4 cm cube <span>12 cm target</span></div></article>
+    <article><div class="card-heading"><span>02</span><h3>Surface push</h3><span class="tag">CONTACT</span></div><video controls playsinline preload="none" poster="media/push.jpg" aria-label="Real JEV surface pushing demonstration"><source src="media/push.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/push.mp4">Download MP4</a>.</video><p>Close the empty fingers and slide the cube into the target. Grasping and lifting invalidate the trial.</p><div class="card-meta">Straight +X lanes <span>Surface friction 0.3</span></div></article>
+    <article><div class="card-heading"><span>03</span><h3>Stack on a pedestal</h3><span class="tag">SUPPORT</span></div><video controls playsinline preload="none" poster="media/stack.jpg" aria-label="Real JEV fixed pedestal stacking demonstration"><source src="media/stack.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/stack.mp4">Download MP4</a>.</video><p>Place the cube on a fixed support. Check containment, support contact, release, and stability.</p><div class="card-meta">Fixed 8 × 8 × 4 cm base <span>Physical support</span></div></article>
+  </div>
+  <p class="caption">Demonstrations use real JEV decisions and recorded probabilities. Playback follows simulation time; API waits are omitted. These are selected demonstrations, separate from the fixed-seed evaluation below.</p>
+</section>
+<section id="method" class="wrap section">
+  <div class="section-head"><p class="eyebrow">02 / METHOD</p><h2>A visible decision loop.</h2><p>The simulator provides measurements. JEV chooses an intent, then chooses motion. A Cartesian controller executes and measures the result.</p></div>
+  <div class="pipeline"><div><span>OBSERVE</span><h3>Measured state</h3><p>Object pose, TCP, finger contacts, target geometry and recent actions.</p></div><b aria-hidden="true">→</b><div><span>JEV · STAGE 1</span><h3>Select intent</h3><p>A task-conditioned choice distribution over the immediate objective.</p></div><b aria-hidden="true">→</b><div><span>JEV · STAGE 2</span><h3>Select action</h3><p>X, Y, Z and gripper choices, conditioned on the selected intent.</p></div><b aria-hidden="true">→</b><div><span>EXECUTE</span><h3>Contact physics</h3><p>1 cm translation, Jacobian IK and MuJoCo. No object teleportation.</p></div></div>
+  <div class="notes"><p><strong>What this demonstrates</strong><br>Closed-loop, task-conditioned control from privileged simulator state, with independent physical evaluation.</p><p><strong>What remains limited</strong><br>No visual perception, real-robot deployment, free-base stacking, or general-purpose motion planning. API waits pause simulation.</p></div>
+</section>
+<section id="results" class="wrap section">
+  <div class="section-head"><p class="eyebrow">03 / EVIDENCE</p><h2>Results, with the denominator.</h2><p>Ten fixed seeds per task and policy. JEV and the independent rule baseline share physics and success checks. Failed trials remain in the results.</p></div>
+  <div class="table-scroll"><table><thead><tr><th>Task</th><th>JEV</th><th>Rule baseline</th><th>JEV 95% Wilson interval</th></tr></thead><tbody id="results-body"><tr><td colspan="4">Loading the published evaluation…</td></tr></tbody></table></div>
+  <p id="results-note" class="caption"></p><p><a href="data/results.json">Evaluation summary JSON ↗</a> <span class="separator">/</span> <a href="https://github.com/lykycy123/RoboJEV/blob/main/docs/evaluation.md">Protocol &amp; failure analysis ↗</a></p>
+</section>
+<section class="wrap section start"><div><p class="eyebrow">04 / REPRODUCE</p><h2>Run the lab.</h2><p>Python 3.11, MuJoCo and a JEV API key for model control.<br>The rule baseline runs without a key or GPU.</p><a class="button" href="https://github.com/lykycy123/RoboJEV#quick-start">Installation &amp; commands ↗</a></div><pre><code>robojev --task pick_place --policy rule
+robojev --task push --policy jev
+robojev --task stack --policy jev \
+  --record-video</code></pre></section>
+</main>
+<footer class="wrap"><a class="brand" href="#">RoboJEV</a><p>Apache-2.0 · MuJoCo / MuJoCo Menagerie / TypeSafe JEV<br>Independent project; not an official product of these providers.</p><a href="https://github.com/lykycy123/RoboJEV/blob/main/README.zh-CN.md">中文说明 ↗</a></footer>
+<script src="app.js"></script>
+</body>
+</html>

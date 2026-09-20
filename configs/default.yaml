@@ -1,0 +1,20 @@
+step_m: 0.01
+physics_dt: 0.002
+min_action_s: 0.2
+max_action_s: 0.5
+position_tolerance_m: 0.002
+orientation_tolerance_rad: 0.0872664626
+max_decisions: 200
+table_z: 0.0
+cube_size_m: 0.04
+target_size_m: 0.12
+tcp_offset_m: [0.0, 0.0, 0.107]
+workspace_min: [0.20, -0.35, 0.018]
+workspace_max: [0.75, 0.35, 0.65]
+model: jev-1.13.0
+api_url: https://api.typesafe.ai/v1/systemone
+api_timeout_s: 25.0
+api_retries: 2
+history_length: 8
+video_fps: 30
+jev_stages: 2

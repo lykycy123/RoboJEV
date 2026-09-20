@@ -1,0 +1,3 @@
+task: pick_place
+max_decisions: 200
+jev_stages: 2

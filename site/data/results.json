@@ -1,0 +1,74 @@
+{
+  "source_sha256": "pending",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "complete": false,
+  "episodes": 0,
+  "expected": 60,
+  "tasks": {
+    "pick_place": {
+      "jev": {
+        "episodes": 0,
+        "successes": 0,
+        "wilson_95": [
+          null,
+          null
+        ]
+      },
+      "rule": {
+        "episodes": 0,
+        "successes": 0,
+        "wilson_95": [
+          null,
+          null
+        ]
+      }
+    },
+    "push": {
+      "jev": {
+        "episodes": 0,
+        "successes": 0,
+        "wilson_95": [
+          null,
+          null
+        ]
+      },
+      "rule": {
+        "episodes": 0,
+        "successes": 0,
+        "wilson_95": [
+          null,
+          null
+        ]
+      }
+    },
+    "stack": {
+      "jev": {
+        "episodes": 0,
+        "successes": 0,
+        "wilson_95": [
+          null,
+          null
+        ]
+      },
+      "rule": {
+        "episodes": 0,
+        "successes": 0,
+        "wilson_95": [
+          null,
+          null
+        ]
+      }
+    }
+  }
+}

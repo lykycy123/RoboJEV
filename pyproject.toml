@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools==75.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jev-vla-sim"
+version = "0.2.0"
+license = {text = "Apache-2.0"}
+description = "Structured-state Jev control of a Franka in MuJoCo"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["numpy==1.26.4", "httpx==0.28.1", "PyYAML==6.0.2", "mujoco==3.3.7"]
+
+[project.optional-dependencies]
+test = ["pytest==8.3.5", "ruff==0.11.13"]
+video = ["Pillow==11.2.1", "imageio==2.37.0", "imageio-ffmpeg==0.6.0"]
+
+[project.scripts]
+robojev = "jev_vla_sim.cli:main"
+jev-sim = "jev_vla_sim.cli:main"
+jev-sim-doctor = "jev_vla_sim.doctor:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

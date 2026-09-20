@@ -1,0 +1,21 @@
+name: jev-vla-sim
+channels:
+  - https://repo.anaconda.com/pkgs/main
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - --index-url https://pypi.org/simple
+      - numpy==1.26.4
+      - scipy==1.15.3
+      - mujoco==3.3.7
+      - httpx==0.28.1
+      - PyYAML==6.0.2
+      - pillow==11.2.1
+      - imageio==2.37.0
+      - imageio-ffmpeg==0.6.0
+      - pytest==8.3.5
+      - ruff==0.11.13
+      - setuptools==75.8.0
+      - wheel==0.45.1
