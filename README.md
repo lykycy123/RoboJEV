@@ -34,16 +34,9 @@ The independent rule baseline uses the same physical scene and success checks. I
 
 ## How it works
 
-```mermaid
-flowchart LR
-    S[MuJoCo state] --> I[JEV: intent choice]
-    I --> A[JEV: XYZ and gripper choices]
-    A --> G[Response and workspace checks]
-    G --> C[Cartesian IK controller]
-    C --> P[MuJoCo contact physics]
-    P --> S
-    P --> E[Independent task evaluator]
-```
+<p align="center">
+  <a href="site/media/architecture.svg"><img src="site/media/architecture.svg" alt="RoboJEV control loop: measured state → JEV intent → JEV action → validated Cartesian control → MuJoCo physics, with measurement feedback and an independent task evaluator." width="100%"></a>
+</p>
 
 - **State:** TCP and object poses, velocity, jaw width, contact measurements, geometric relationships and recent actions. No camera input or evaluator history is supplied to JEV.
 - **Intent:** a real JEV choice over task-specific intentions; task instructions and geometric helpers are engineered explicitly.
