@@ -23,6 +23,8 @@ RoboJEV is a small, inspectable robotics laboratory. JEV receives **structured s
 - [ ] Extend simulation experiments to more manipulation tasks and scene configurations.
 - [ ] Explore additional simulation platforms and evaluate the framework across simulators.
 - [ ] Adapt the framework for real robotic arms and validate control on physical hardware.
+- [ ] Integrate OpenAI API calls as an additional model backend.
+- [ ] Integrate Claude Code API calls as an additional model backend.
 
 ## Demo presentation
 
