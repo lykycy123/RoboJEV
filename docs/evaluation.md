@@ -19,7 +19,7 @@ Fixed seeds 0–9 per task and policy; **60/60 episodes complete**. Every comple
 | Surface push | 81.7 | 126.8 s | 1228 / 3509 ms |
 | Stack on a pedestal | 126.9 | 182.4 s | 1247 / 2169 ms |
 
-Failure analysis: 
+Failure analysis:
 
 - Stack on a pedestal, jev, seed 4: `policy_error`.
 - Stack on a pedestal, jev, seed 7: `policy_error`.
