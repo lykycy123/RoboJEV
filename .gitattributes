@@ -2,3 +2,7 @@
 *.mp4 binary
 *.jpg binary
 *.png binary
+# Preserve evaluated source bytes: recording provenance hashes raw file content.
+src/jev_vla_sim/challenge.py -text
+src/jev_vla_sim/challenge_policy.py -text
+src/jev_vla_sim/tasks.py -text

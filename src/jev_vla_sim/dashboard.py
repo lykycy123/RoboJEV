@@ -106,7 +106,8 @@ class Dashboard:
             for row, name in enumerate(options):
                 self.bar(d, x, 594 + row * 23, name, answer.get("probabilities", {}).get(name),
                          name == answer.get("choice"), width=44)
-        self.text(d, 28, 693, "MuJoCo  /  base XYZ  /  1 cm steps  /  simulation-time playback; API waits omitted", 12, MUTED)
+        step = state.get("relations", {}).get("action_step_m", .01)*1000
+        self.text(d, 28, 693, f"MuJoCo / base XYZ / {step:g} mm steps / simulation-time playback; API waits omitted", 12, MUTED)
         self.text(d, 1140, 691, f"{self.frame_index / self.fps:06.2f} s", 16, CYAN)
         self.frame_index += 1
         return np.asarray(out)

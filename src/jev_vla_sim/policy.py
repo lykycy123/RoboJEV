@@ -9,6 +9,8 @@ from pathlib import Path
 import httpx
 import numpy as np
 
+from .challenge import CHALLENGES
+from .challenge_policy import ChallengeRulePolicy, intents, motion_criteria
 from .config import Config
 from .geometry import direction
 from .push_policy import PUSH_INTENTS, PUSH_RULES, PushRulePolicy, push_motor_criteria
@@ -136,6 +138,19 @@ Each nonzero Cartesian decision moves a normalized total of 1 cm in robot-base a
 
 
 def intent_body(state, config):
+    if config.task in CHALLENGES:
+        destination = ("align_from_object.xy_aligned=true" if config.task == "peg_insert"
+                       else "beyond_gate=true AND target_from_cube.xy_aligned=true")
+        ready = "seated=true" if config.task == "peg_insert" else "placement_tcp_from_tcp.directions.z=zero"
+        return {"model": config.model, "state": state.to_dict(), "questions": {
+            "intent": {"type": "choice", "criteria": intents(config.task), "instructions": {
+                "task": state.task, "rules": "Select by measured facts in this priority: "
+                "object_placed=true means withdraw if retreated=false, otherwise finish. "
+                f"When holding AND {destination}: choose release if {ready}, otherwise lower. "
+                "These destination conditions override transport_ready=false: never relift over the final target. "
+                "When holding elsewhere: transport_ready=false means lift; transport_ready=true means carry. "
+                "When not holding: all grasp_tcp_from_tcp directions zero means grasp; otherwise approach. "
+                "Do not reinterpret zero as a residual offset needing correction. Select ONE immediate intent."}}}}
     return {"model": config.model, "state": state.to_dict(), "questions": {
         "intent": {"type": "choice", "criteria": PUSH_INTENTS if config.task == "push" else INTENTS, "instructions": {
             "task": "Select the immediate intent for this measured state. Do not skip physical prerequisites.",
@@ -200,7 +215,8 @@ class JevPolicy:
             intent_exchange = {"request": intent_body(state, self.config), "attempts": 0}
             self.last_exchange["intent"] = intent_exchange
             result = self._query(intent_exchange, {"intent"})
-            intent = validate_answer(result["answers"]["intent"], tuple(PUSH_INTENTS if self.config.task == "push" else INTENTS))
+            options = intents(self.config.task) if self.config.task in CHALLENGES else PUSH_INTENTS if self.config.task == "push" else INTENTS
+            intent = validate_answer(result["answers"]["intent"], tuple(options))
         body = request_body(state, self.config)
         if intent is not None:
             # The motor stage sees the actual model-selected intent, never RulePolicy's phase.
@@ -224,6 +240,11 @@ class JevPolicy:
                 }
                 for question in body["questions"].values():
                     question["instructions"]["rules"] = PUSH_RULES
+        if self.config.task in CHALLENGES:
+            criteria, rules = motion_criteria(self.config.task)
+            for name, question in body["questions"].items():
+                question["criteria"] = criteria[name]
+                question["instructions"]["rules"] = rules
         motor_exchange = {"request": body, "attempts": 0}
         self.last_exchange.update(request=body, motor=motor_exchange)
         result = self._query(motor_exchange, {"x", "y", "z", "gripper"})
@@ -293,6 +314,7 @@ class RulePolicy:
     def __init__(self):
         self.phase = "approach"
         self.push = PushRulePolicy()
+        self.challenge = ChallengeRulePolicy()
         self.retries = 0
         self.last_exchange = {}
 
@@ -302,6 +324,8 @@ class RulePolicy:
     def decide(self, state: SceneState) -> EefDecision:
         if state.task_id == "push":
             return self.push.decide(state)
+        if state.task_id in CHALLENGES:
+            return self.challenge.decide(state)
         tcp = np.asarray(state.robot["tcp_position"])
         cube = np.asarray(state.objects[0]["position"])
         target = np.asarray(state.target["position"])

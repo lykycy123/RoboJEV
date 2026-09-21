@@ -10,14 +10,16 @@ from .types import PolicyError
 
 def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed: int, video: bool):
     episode_id = f"{cfg.task}_{policy_name}_seed_{seed:04d}"
-    log = EpisodeLog(run/episode_id, video, cfg.video_fps, policy_name)
-    backend.frame_sink = log.frame if video else None
+    capture = getattr(backend, "capture_state", False)
+    log = EpisodeLog(run/episode_id, video, cfg.video_fps, policy_name, capture_state=capture)
+    backend.frame_sink = log.frame if video or capture else None
     start = time.perf_counter()
     success, reason, decisions, executed, requests, tokens = False, "max_decisions", 0, 0, 0, 0
     rejected, stalls, empty_grasps, oscillations = 0, 0, 0, 0
     state_ms, api_ms, physics_ms, render_ms = 0., 0., 0., 0.
     output_tokens = 0
     last_delta = None
+    error_detail = None
     try:
         state = backend.reset(seed, episode_id)
         log.set_context(state)
@@ -67,6 +69,7 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
                     break
             except PolicyError as exc:
                 reason = "policy_error"
+                error_detail = str(exc)
                 exchange = policy.last_exchange
                 if not decision_recorded:
                     api_ms += (time.perf_counter()-started)*1000
@@ -90,6 +93,28 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
         log.append({"error_type": type(exc).__name__, "error": str(exc)})
         raise
     finally:
+        evaluator = getattr(getattr(backend, "evaluator", None), "challenge", None)
+        if evaluator and not evaluator.last and getattr(backend, "last_raw", None):
+            from .challenge import measurements
+            evaluator.last = measurements(backend.last_raw, cfg)
+        failure = evaluator.diagnostic(reason, decisions) if evaluator and not success else None
+        if failure and error_detail:
+            failure["detail"] = error_detail
+            failure["response_checks"] = []
+            for stage in ("intent", "motor"):
+                answers = policy.last_exchange.get(stage, {}).get("response", {}).get("answers", {})
+                for head, answer in answers.items():
+                    if not isinstance(answer, dict):
+                        continue
+                    probabilities = answer.get("probabilities", {})
+                    if not isinstance(probabilities, dict) or not probabilities:
+                        continue
+                    values = list(probabilities.values())
+                    if not all(type(value) in (int, float) and 0 <= value <= 1 for value in values):
+                        continue
+                    failure["response_checks"].append({"stage": stage, "head": head,
+                        "choice": answer.get("choice"), "selected_probability": probabilities.get(answer.get("choice")),
+                        "maximum_probability": max(values)})
         result = {"episode_id": episode_id, "task": cfg.task, "seed": seed, "policy": policy_name,
                   "success": bool(success), "end_reason": reason, "decisions": decisions,
                   "executed": executed, "rejected": rejected, "tracking_timeouts": stalls,
@@ -97,7 +122,16 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
                   "api_requests": requests, "input_tokens": tokens, "output_tokens": output_tokens, "wall_s": time.perf_counter()-start,
                   "state_ms": state_ms, "decision_ms": api_ms, "physics_ms": physics_ms,
                   "render_ms": render_ms, "simulation_time_s": backend.tick*cfg.physics_dt}
+        if evaluator:
+            result.update(failure=failure, final_measurements=evaluator.last)
+        if capture:
+            # Preserve the exact terminal tick even if it falls between 30 fps samples.
+            log.set_context(backend.observe(), exchange=policy.last_exchange)
+            log.frame({k: getattr(backend.data, k).copy() for k in
+                       ("qpos", "qvel", "act", "ctrl", "mocap_pos", "mocap_quat")})
         write_json(log.directory/"result.json", result)
+        if video:
+            log.terminal(result, backend)
         backend.frame_sink = None
         log.close()
         policy.close()

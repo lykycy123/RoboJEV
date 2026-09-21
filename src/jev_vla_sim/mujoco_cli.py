@@ -31,6 +31,7 @@ def main():
     parser.add_argument("--eval-shard-count", type=int, default=1)
     parser.add_argument("--eval-shard-index", type=int, default=0)
     parser.add_argument("--record-video", action="store_true")
+    parser.add_argument("--capture-video-state", action="store_true", help="Capture exact physical frames for later rendering without rerunning policy")
     parser.add_argument("--render-backend", choices=("auto", "egl", "osmesa"), default="auto")
     parser.add_argument("--render-probe", action="store_true", help="Only test rendering, without API calls")
     parser.add_argument("--probe-axes", action="store_true", help="Test all 27 Cartesian choices without API calls")
@@ -38,6 +39,8 @@ def main():
     parser.add_argument("--output", default="runs")
     parser.add_argument("--resume", help="Resume a frozen evaluation, skipping completed episodes")
     args = parser.parse_args()
+    if args.record_video and args.capture_video_state:
+        parser.error("choose live video or deferred frame capture")
     if args.episodes < 1 or args.seed < 0:
         parser.error("episodes must be positive and seed nonnegative")
     if args.policy == "replay" and (not args.replay or args.episodes != 1 or args.evaluate):
@@ -61,8 +64,8 @@ def main():
         cfg = replace(cfg, task=args.task)
     if not args.config:
         cfg = replace(cfg, max_decisions=TASKS[cfg.task].max_decisions)
-    if cfg.task == "push" and cfg.jev_stages != 2:
-        parser.error("push requires two-stage control")
+    if cfg.task in ("push", "peg_insert", "obstacle_pick_place") and cfg.jev_stages != 2:
+        parser.error("this task requires two-stage control")
     if args.seeds and (not args.evaluate or min(args.seeds) < 0 or len(set(args.seeds)) != len(args.seeds)):
         parser.error("--seeds requires evaluation and unique nonnegative values")
     from .doctor import inspect_environment
@@ -78,6 +81,7 @@ def main():
     backend = run = None
     try:
         backend = MujocoBackend(cfg, args.record_video)
+        backend.capture_state = args.capture_video_state
         if args.resume:
             candidate = Path(args.resume)
             meta = json.loads((candidate / "metadata.json").read_text())
@@ -88,6 +92,7 @@ def main():
                     or meta["arguments"].get("eval_shard_count", 1) != args.eval_shard_count
                     or meta["arguments"].get("eval_shard_index", 0) != args.eval_shard_index
                     or meta["arguments"].get("record_video") != args.record_video
+                    or meta["arguments"].get("capture_video_state", False) != args.capture_video_state
                     or meta["arguments"].get("seeds") != args.seeds):
                 raise ValueError("Resume requires identical source, configuration, assets, and video setting")
             run = candidate

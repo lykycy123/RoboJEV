@@ -19,6 +19,11 @@ class TaskSpec:
 
 
 TASKS = {
+    "peg_insert": TaskSpec("peg_insert", "Peg insertion", "Grasp the upright amber cylindrical peg, lift, "
+                           "align its axis with the cyan socket, insert at least 30 mm, then release.", .030, .008, 450),
+    "obstacle_pick_place": TaskSpec("obstacle_pick_place", "Gate pick & place", "Grasp the amber cube, "
+                                    "carry it over the low crossbar BETWEEN the tall gate posts, then place "
+                                    "and release in the cyan region. Do not touch the gate.", .12, 0., 350),
     "pick_place": TaskSpec("pick_place", "Pick & place", "Pick up the amber cube, carry it to the cyan target "
                            "region, and release it on the table.", .12, 0., 200),
     "push": TaskSpec("push", "Surface push", "Push the amber cube along the table into the cyan target region "
@@ -35,6 +40,9 @@ def task_spec(config):
 
 
 def sample_task_layout(seed, config):
+    from .challenge import CHALLENGES, layout
+    if config.task in CHALLENGES:
+        return layout(seed, config)
     rng = np.random.default_rng(seed)
     if config.task == "push":
         # Straight +X pushes, with randomized lane, start, and travel distance.
@@ -56,6 +64,8 @@ class TaskEvaluator:
     """Only measured physics enters this evaluator; its history is not policy input."""
 
     def __init__(self, config):
+        from .challenge import CHALLENGES, ChallengeEvaluator
+        self.challenge = ChallengeEvaluator(config) if config.task in CHALLENGES else None
         self.config = config
         self.ever_lifted = False
         self.ever_pushed = False
@@ -63,6 +73,8 @@ class TaskEvaluator:
         self.start_xy = None
 
     def update(self, raw):
+        if self.challenge is not None:
+            return self.challenge.update(raw)
         cfg = self.config
         spec = task_spec(cfg)
         p = np.asarray(raw["cube_pos"])

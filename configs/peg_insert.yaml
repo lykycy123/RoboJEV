@@ -1,0 +1,3 @@
+task: peg_insert
+max_decisions: 450
+jev_stages: 2

@@ -59,7 +59,7 @@
   <text x="694" y="305" class="body">Check workspace</text>
   <text x="694" y="330" class="body">Jacobian IK → joints</text>
   <path d="M694 345h184" stroke="#34465d"/>
-  <text x="694" y="368" class="small">1 cm step · fixed orientation</text>
+  <text x="694" y="368" class="small">10 / 4 mm step · fixed orientation</text>
 
   <!-- Physics -->
   <rect x="924" y="186" width="240" height="200" rx="12" fill="#152234" stroke="#34465d"/>

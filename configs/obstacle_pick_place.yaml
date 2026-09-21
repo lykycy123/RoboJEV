@@ -1,0 +1,3 @@
+task: obstacle_pick_place
+max_decisions: 350
+jev_stages: 2

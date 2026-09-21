@@ -23,7 +23,12 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
+proxy_ssh_options=()
+if [[ -n "${JEV_PROXY_HOST_KEY_ALIAS:-}" ]]; then
+    proxy_ssh_options+=(-o "HostKeyAlias=$JEV_PROXY_HOST_KEY_ALIAS")
+fi
 ssh -F /dev/null -o BatchMode=yes -o ExitOnForwardFailure=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 \
+    "${proxy_ssh_options[@]}" \
     -o ServerAliveCountMax=2 -N -L "127.0.0.1:${proxy_local_port}:127.0.0.1:${JEV_PROXY_REMOTE_PORT}" \
     "${JEV_PROXY_HOST:?Set JEV_PROXY_HOST to your SSH login host}" >"$proxy_log" 2>&1 &
 proxy_pid=$!

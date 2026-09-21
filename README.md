@@ -15,12 +15,13 @@ RoboJEV is a small, inspectable robotics laboratory. JEV receives **structured s
 - [x] Implement two-stage JEV control: intent selection followed by XYZ and gripper commands.
 - [x] Integrate MuJoCo and Franka Panda with structured state observations and physical contact.
 - [x] Demonstrate pick & place, surface pushing, and stacking on a fixed pedestal with real JEV decisions.
-- [x] Complete 60 evaluation episodes across three tasks, with an independent rule baseline and documented failures.
+- [x] Complete 100 evaluation episodes across five tasks in two frozen campaigns, with an independent rule baseline and documented failures.
 - [x] Publish demonstration videos, reproducible code, bilingual documentation, and an interactive showcase.
 
 **Next steps**
 
-- [ ] Extend simulation experiments to more manipulation tasks and scene configurations.
+- [x] Add loose-fit peg insertion and gate obstacle pick & place with independent physical failure checks.
+- [ ] Extend simulation experiments to further manipulation tasks and scene configurations.
 - [ ] Explore additional simulation platforms and evaluate the framework across simulators.
 - [ ] Adapt the framework for real robotic arms and validate control on physical hardware.
 - [ ] Integrate OpenAI API calls as an additional model backend.
@@ -34,7 +35,7 @@ RoboJEV is a small, inspectable robotics laboratory. JEV receives **structured s
 | Lift, transport, release | Slide without grasping | Release onto a fixed support |
 | [MP4](site/media/pick_place.mp4) | [MP4](site/media/push.mp4) | [MP4](site/media/stack.mp4) |
 
-The displays show actual API distributions. Videos follow **simulation time and omit API waits**; they are not real-time inference demonstrations. The selected video seeds are separate from formal evaluation seeds. The stack task uses a **fixed pedestal**, not two free cubes. Push layouts vary the start, lane and travel distance along +X.
+The displays show actual API distributions. Videos follow **simulation time and omit API waits**; they are not real-time inference demonstrations. The original three video seeds are separate from formal evaluation seeds; the new challenge videos below come directly from evaluated trials. The stack task uses a **fixed pedestal**, not two free cubes. Push layouts vary the start, lane and travel distance along +X.
 
 ## Results
 
@@ -44,13 +45,17 @@ The displays show actual API distributions. Videos follow **simulation time and 
 | Pick & place | **10/10** | 10/10 | 72.2%–100.0% |
 | Surface push | **10/10** | 10/10 | 72.2%–100.0% |
 | Stack on a pedestal | **8/10** | 10/10 | 49.0%–94.3% |
+| Loose-fit peg insertion | **10/10** | 10/10 | 72.2%–100.0% |
+| Gate pick & place | **5/10** | 8/10 | 23.7%–76.3% |
 
-Fixed seeds 0–9 per task and policy; **60/60 episodes complete**. Every completed episode remains in the denominator.
+Fixed seeds 0–9 per task and policy; **100/100 episodes complete** across the original 60-trial and new 40-trial frozen campaigns. Every completed failure remains in the denominator.
 <!-- RESULTS:END -->
 
 **JEV Wilson 95%** is a confidence interval for the success rate under the evaluated conditions. With only ten trials per task, even 10/10 successes leaves substantial uncertainty; it does not guarantee future success.
 
 The independent rule baseline uses the same physical scene and success checks. It is never a fallback for JEV. See the [protocol and failure analysis](docs/evaluation.md) and [machine-readable summary](site/data/results.json). Ten seeds per task is a small sample, not a claim of general-purpose manipulation.
+
+New challenge recordings: [insertion success](site/media/peg_insert-success.mp4), [gate success](site/media/obstacle_pick_place-success.mp4), and [gate failure](site/media/obstacle_pick_place-failure.mp4). Insertion had no natural failure. Gate failures exposed arm-link collisions while lowering, repeated wrong-direction requests exhausting the decision budget, and one inconsistent model response. See [all seven failed trials and measured boundaries](docs/challenge-evaluation.md).
 
 ## How it works
 
@@ -60,7 +65,7 @@ The independent rule baseline uses the same physical scene and success checks. I
 
 - **State:** TCP and object poses, velocity, jaw width, contact measurements, geometric relationships and recent actions. No camera input or evaluator history is supplied to JEV.
 - **Intent:** a real JEV choice over task-specific intentions; task instructions and geometric helpers are engineered explicitly.
-- **Motion:** `negative / zero / positive` for each axis; `open / hold / close` for the gripper. Nonzero axes form a normalized **1 cm** translation in robot-base coordinates. Orientation stays downward.
+- **Motion:** `negative / zero / positive` for each axis; `open / hold / close` for the gripper. Nonzero axes form a normalized **1 cm** translation in robot-base coordinates, reduced to **4 mm** while a grasped peg is within 25 mm of the socket axis. Orientation stays downward; both policies share this step selection.
 - **Execution:** Jacobian damped least-squares IK, joint position control and 2 ms physics steps. Grasping uses friction and contact, with no welded object or scripted object trajectory.
 - **Validation:** malformed or inconsistent responses execute no action. Simulation pauses during API calls. Each two-stage decision makes at least two API requests.
 
@@ -96,9 +101,22 @@ Standard `HTTPS_PROXY` is supported where necessary. No cluster, account or priv
 
 ## Evaluate and reproduce
 
+The new `peg_insert` and `obstacle_pick_place` tasks add loose-fit insertion and transport through a narrow gate over a low crossbar. The insertion uses a 20 mm peg, 30 mm socket and at least 30 mm depth. Gate traversal requires a 40 mm cube to clear a 120 mm crossbar between posts with a 70 mm opening. See [physical boundaries](docs/tasks.md) and the [challenge report](docs/challenge-evaluation.md).
+
 ```bash
-# CPU-only paired evaluation: 3 tasks × 10 seeds × 2 policies = 60 episodes.
-python scripts/evaluate_suite.py --workers 4
+robojev --task peg_insert --policy rule --seed 1000
+robojev --task obstacle_pick_place --policy jev --seed 1000
+python scripts/evaluate_suite.py --tasks peg_insert obstacle_pick_place --workers 4 --capture-video-state
+# Render original success/failure trial states with one EGL process, without calling JEV again.
+python scripts/render_captured_episode.py runs/robojev-evaluation/RUN_ID
+python scripts/export_challenge_results.py runs/robojev-evaluation/RUN_ID
+```
+
+Challenge videos come from the fixed-seed evaluation itself. The earliest success and earliest natural failure are selected per task; no failure is manufactured when all ten JEV trials succeed. Captured physical states, original model probabilities and failure evidence are preserved. Videos omit API waits and append a labeled two-second outcome still. Original three-task videos retain their separate demonstration seeds and source fingerprints.
+
+```bash
+# Original CPU-only paired evaluation: 3 tasks × 10 seeds × 2 policies = 60 episodes.
+python scripts/evaluate_suite.py --tasks pick_place push stack --workers 4
 
 # Resume incomplete work with identical source/configuration; completed failures stay failures.
 python scripts/evaluate_suite.py --resume runs/robojev-evaluation/RUN_ID

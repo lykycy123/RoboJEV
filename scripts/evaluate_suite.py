@@ -54,7 +54,8 @@ def collect(root):
             stats[task][policy] = {
                 "episodes": n, "successes": successes, "success_rate": successes / n if n else None,
                 "wilson_95": wilson(successes, n),
-                "failures": [{"seed": r["seed"], "reason": r["end_reason"]} for r in group if not r["success"]],
+                "failures": [{"seed": r["seed"], "reason": r["end_reason"], "failure": r.get("failure")}
+                             for r in group if not r["success"]],
                 "mean_wall_s": sum(r["wall_s"] for r in group) / n if n else None,
                 "mean_decisions": sum(r["decisions"] for r in group) / n if n else None,
                 "api_p50_ms": float(np.percentile(times, 50)) if times else None,
@@ -78,7 +79,13 @@ def main():
     p.add_argument("--output", default="runs/robojev-evaluation")
     p.add_argument("--resume")
     p.add_argument("--collect-only")
+    p.add_argument("--record-video", action="store_true", help="Record actual paired trials sequentially; requires one worker")
+    p.add_argument("--capture-video-state", action="store_true")
     args = p.parse_args()
+    if args.record_video and args.capture_video_state:
+        p.error("choose live recording or deferred capture")
+    if args.record_video and args.workers != 1:
+        p.error("recording requires --workers 1 (one EGL process at a time)")
     if args.collect_only:
         print(json.dumps(collect(Path(args.collect_only)), indent=2))
         return
@@ -88,12 +95,17 @@ def main():
         if meta["source_sha256"] != source_fingerprint():
             raise ValueError("cannot resume changed source")
         tasks, seeds = meta["tasks"], meta["seeds"]
+        if args.record_video != meta.get("record_video", False):
+            raise ValueError("resume requires the same recording setting")
+        if args.capture_video_state != meta.get("capture_video_state", False):
+            raise ValueError("resume requires the same frame-capture setting")
     else:
         root.mkdir(parents=True, exist_ok=False)
         tasks, seeds = args.tasks, args.seeds
         if len(set(tasks)) != len(tasks) or len(set(seeds)) != len(seeds) or min(seeds) < 0:
             raise ValueError("tasks and nonnegative seeds must be unique")
-        write_json(root / "suite.json", {"tasks": tasks, "seeds": seeds, "source_sha256": source_fingerprint()})
+        write_json(root / "suite.json", {"tasks": tasks, "seeds": seeds, "source_sha256": source_fingerprint(),
+                                        "record_video": args.record_video, "capture_video_state": args.capture_video_state})
     print(f"Suite: {root}", flush=True)
 
     def worker(pair):
@@ -101,6 +113,10 @@ def main():
         folder = root / f"{task}-{seed}"
         cmd = [sys.executable, "-m", "jev_vla_sim.cli", "--task", task, "--evaluate", "--seeds", str(seed),
                "--output", str(folder)]
+        if args.record_video:
+            cmd.append("--record-video")
+        if args.capture_video_state:
+            cmd.append("--capture-video-state")
         prior = list(folder.glob("*/metadata.json"))
         if prior:
             if len(prior) != 1:

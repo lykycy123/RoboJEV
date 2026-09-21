@@ -44,12 +44,16 @@ def make_run(root: str | Path, config: dict, args: dict) -> Path:
 
 
 class EpisodeLog:
-    def __init__(self, directory: Path, video: bool, fps: int, policy_name="rule"):
+    def __init__(self, directory: Path, video: bool, fps: int, policy_name="rule", capture_state=False):
         directory.mkdir(parents=True, exist_ok=False)
         self.directory = directory
         self.file = (directory / "steps.jsonl").open("w", encoding="utf-8")
         self.writer = None
         self.dashboard = None
+        self.capture_state = capture_state
+        self.frames = []
+        self.frame_context = []
+        self.contexts = []
         if video:
             import imageio.v2 as imageio
 
@@ -59,10 +63,15 @@ class EpisodeLog:
                                              ffmpeg_params=["-threads", "1", "-preset", "veryfast"])
 
     def frame(self, image):
+        if self.capture_state:
+            self.frames.append(image)
+            self.frame_context.append(len(self.contexts)-1)
         if self.writer:
             self.writer.append_data(self.dashboard.compose(image))
 
     def set_context(self, state, decision=None, exchange=None):
+        if self.capture_state:
+            self.contexts.append({"state": state.to_dict(), "exchange": exchange or {}})
         if self.dashboard is not None:
             self.dashboard.set_context(state, decision, exchange)
 
@@ -70,8 +79,30 @@ class EpisodeLog:
         self.file.write(json.dumps(record, ensure_ascii=False, allow_nan=False)+"\n")
         self.file.flush()
 
+    def terminal(self, result, backend):
+        """Labeled two-second still after the physical episode, including API failures."""
+        if self.writer is None or backend.renderer is None:
+            return
+        self.dashboard.set_context(backend.observe(), exchange={})
+        backend.renderer.update_scene(backend.data, camera="overview")
+        pixels = backend.renderer.render()
+        from PIL import Image, ImageDraw
+        for _ in range(2*self.dashboard.fps):
+            frame = Image.fromarray(self.dashboard.compose(pixels))
+            draw = ImageDraw.Draw(frame)
+            draw.rectangle((190, 470, 1080, 550), fill=(20, 30, 45))
+            label = "SUCCESS" if result["success"] else "FAILED: " + (result.get("failure") or {}).get("code", result["end_reason"])
+            draw.text((210, 483), label, font=self.dashboard.fonts[22], fill=(255, 178, 68))
+            draw.text((210, 520), "End-of-episode still; no further physics or API calls", font=self.dashboard.fonts[14], fill=(232, 240, 250))
+            self.writer.append_data(np.asarray(frame))
+
     def close(self):
         self.file.close()
+        if self.capture_state and self.frames:
+            np.savez_compressed(self.directory/"frames.npz", **{
+                key: np.stack([frame[key] for frame in self.frames]) for key in self.frames[0]},
+                context=np.asarray(self.frame_context, dtype=np.int32))
+            write_json(self.directory/"frame_contexts.json", self.contexts)
         if self.writer:
             self.writer.close()
 

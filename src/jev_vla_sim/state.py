@@ -72,7 +72,8 @@ def build_state(raw: dict, config: Config, episode_id: str, step: int, tick: int
         for key in ("grasp_tcp_from_tcp", "placement_tcp_from_tcp", "cube_clear_of_table_for_transport",
                     "transport_clearance_m", "support_contact", "support_height_m"):
             state.relations.pop(key)
-    return state
+    from .challenge import CHALLENGES, enrich_state
+    return enrich_state(state, raw, config) if config.task in CHALLENGES else state
 
 
 def sample_layout(seed: int, config: Config) -> tuple[np.ndarray, np.ndarray]:

@@ -46,5 +46,113 @@
     "timing": "simulation time; API waits omitted",
     "processing": "H.264 compression only; all frames preserved",
     "source_note": "Demo source precedes release-only package version and empty-grasp metric fixes; task physics and model prompts are unchanged."
+  },
+  {
+    "task": "peg_insert",
+    "policy": "jev",
+    "seed": 0,
+    "success": true,
+    "decisions": 194,
+    "simulation_time_s": 58.972,
+    "wall_s": 263.52493559289724,
+    "failure": null,
+    "source_sha256": "d5a76ee31cd893072c2a54a41f5b0d151c4a2789c9cff4af029b9d15a7f8afdd",
+    "capture_sha256": "3b02a39cc688b85011177ca9529e153ae399f41dcf45d2e47aa758724a539214",
+    "video_sha256": "121f6fc3df4327040ff37c9e35ed5bb9f1e718d47a33e781ba71dd5a5bd86b19",
+    "frames": 1831,
+    "physical_frames": 1771,
+    "fps": 30,
+    "terminal_still_s": 2,
+    "timing": "simulation time; API waits omitted; 2 s labeled terminal still",
+    "processing": "direct rendering of original recorded qpos/qvel/mocap; no action or physics replay",
+    "evaluation_sample": true,
+    "video": "media/peg_insert-success.mp4"
+  },
+  {
+    "task": "peg_insert",
+    "policy": "jev",
+    "success": false,
+    "available": false,
+    "reason": "No natural failure in the fixed-seed evaluation"
+  },
+  {
+    "task": "obstacle_pick_place",
+    "policy": "jev",
+    "seed": 2,
+    "success": true,
+    "decisions": 129,
+    "simulation_time_s": 41.742,
+    "wall_s": 190.0452486742288,
+    "failure": null,
+    "source_sha256": "d5a76ee31cd893072c2a54a41f5b0d151c4a2789c9cff4af029b9d15a7f8afdd",
+    "capture_sha256": "713e131f8f31c2ecba896b25358ad3c392a855d3c5c8f762616b380c2827d97e",
+    "video_sha256": "91e46361afd7d90b61421520dcc4da2389b26ede144999386567fcedd0d5060c",
+    "frames": 1314,
+    "physical_frames": 1254,
+    "fps": 30,
+    "terminal_still_s": 2,
+    "timing": "simulation time; API waits omitted; 2 s labeled terminal still",
+    "processing": "direct rendering of original recorded qpos/qvel/mocap; no action or physics replay",
+    "evaluation_sample": true,
+    "video": "media/obstacle_pick_place-success.mp4"
+  },
+  {
+    "task": "obstacle_pick_place",
+    "policy": "jev",
+    "seed": 0,
+    "success": false,
+    "decisions": 120,
+    "simulation_time_s": 39.764,
+    "wall_s": 216.44875971321017,
+    "failure": {
+      "code": "obstacle_collision",
+      "boundary": "robot or object gate contact force > 0.05 N",
+      "measurements": {
+        "object_bottom_m": 0.010102682052977693,
+        "contact_force_n": 43.99629640384023,
+        "socket_force_n": 0.0,
+        "gate_clearance_m": -0.1098973179470223,
+        "lateral_clearance_m": 0.004356040050735428,
+        "gate_x_m": 0.51,
+        "object_min_x_m": 0.5886276533706185,
+        "object_max_x_m": 0.6287335736074897,
+        "linear_speed_m_s": 0.0603849857804344,
+        "angular_speed_rad_s": 0.02684147231782439,
+        "support_contact": false,
+        "max_gate_contact_force_n": 43.99629640384023
+      },
+      "first_step": 120
+    },
+    "source_sha256": "d5a76ee31cd893072c2a54a41f5b0d151c4a2789c9cff4af029b9d15a7f8afdd",
+    "capture_sha256": "0cea352b3ab9ddb7d0bdfbee64baee9d76449ad366ba9ce31e8610f97baddabd",
+    "video_sha256": "ba194e8ec6ccf595f4b6a3be55152f117613473371f31707f2191452898294cb",
+    "frames": 1254,
+    "physical_frames": 1194,
+    "fps": 30,
+    "terminal_still_s": 2,
+    "timing": "simulation time; API waits omitted; 2 s labeled terminal still",
+    "processing": "direct rendering of original recorded qpos/qvel/mocap; no action or physics replay",
+    "evaluation_sample": true,
+    "video": "media/obstacle_pick_place-failure.mp4",
+    "collision_analysis": {
+      "task": "obstacle_pick_place",
+      "seed": 0,
+      "policy": "jev",
+      "decision": 120,
+      "contacts": [
+        {
+          "geoms": [
+            "gate_post_1",
+            "unnamed"
+          ],
+          "bodies": [
+            "gate",
+            "link5"
+          ],
+          "normal_force_n": 43.99629640384034
+        }
+      ],
+      "method": "mj_forward on original terminal state; no integration; force verified against recorded failure"
+    }
   }
 ]

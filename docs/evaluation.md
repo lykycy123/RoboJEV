@@ -1,8 +1,12 @@
 # Evaluation protocol
 
-The release evaluation uses three tasks, two policies and seeds 0–9: 60 planned episodes. Each task has a separate independent success evaluator. Both policies use identical layouts, material parameters, action limits and termination rules within each task.
+The original 60-trial campaign below remains frozen under its original source fingerprint. The two added tasks use a separate 40-trial campaign: ten seeds for JEV and ten for the rule baseline per task. See [challenge outcomes and per-failure measurements](challenge-evaluation.md). Public results retain a `campaigns` list and per-task source fingerprints rather than assigning old results to new code.
 
-Development and videos use seeds 1000–1004, disjoint from evaluation. Source and configuration are frozen after tuning; completed failures are not replaced by successful reruns. External interruptions may be resumed, retaining partial attempts privately. Those partial attempts do not enter completed-episode performance statistics.
+Challenge recordings are rendered directly from physical states captured during the original evaluated episode at 30 fps. This includes failures that cannot be reproduced by another nondeterministic API call. Selection is the lowest-seed JEV success and lowest-seed natural JEV failure in each task; missing outcomes are reported. Rendering performs no physics integration and no API calls. Videos include a labeled two-second terminal still. Full raw responses and state captures stay private.
+
+The original release evaluation uses three tasks, two policies and seeds 0–9: 60 planned episodes. Each task has a separate independent success evaluator. Both policies use identical layouts, material parameters, action limits and termination rules within each task.
+
+Original-campaign development and demonstration videos use seeds 1000–1004, disjoint from evaluation. Source and configuration are frozen after tuning; completed failures are not replaced by successful reruns. External interruptions may be resumed, retaining partial attempts privately. Those partial attempts do not enter completed-episode performance statistics.
 
 <!-- RESULTS:START -->
 | Task | JEV | Rule baseline | JEV Wilson 95% |
@@ -47,8 +51,10 @@ The stack demonstration includes 12 direction reversals; these corrections remai
 
 ## Software checks
 
-The release passed 93 tests and Ruff on the experiment host. GitHub Actions independently installed the public package and video extras, fetched and verified the pinned robot assets, passed tests/lint, and checked indexed publication content on Ubuntu with Python 3.11. No live API credentials are used in CI.
+The original release passed 93 tests and Ruff on the experiment host. GitHub Actions independently installed the public package and video extras, fetched and verified the pinned robot assets, passed tests/lint, and checked indexed publication content on Ubuntu with Python 3.11. No live API credentials are used in CI.
 
 ## Response-validation failure
 
 In stack seeds 4 and 7, the motor Z response chose `negative` with probability 0.48 while `zero` had probability 0.49 (`positive`: 0.03). Strict choice/argmax validation rejected each response before executing that action. Both trials remain `policy_error` failures. No threshold change, choice correction, rule fallback or replacement rollout was applied.
+
+The challenge extension passed 113 tests and Ruff on the experiment host. Its 40/40 outcomes, seven failures, original-trial recordings and limits are documented in the [challenge report](challenge-evaluation.md).

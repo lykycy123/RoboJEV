@@ -2,45 +2,83 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="RoboJEV: a reproducible MuJoCo laboratory for two-stage JEV control of a Franka Panda using structured simulator state.">
-  <title>RoboJEV — State. Intent. Motion.</title>
+  <meta name="description" content="Five robot manipulation tasks. 100 measured trials. Explore real JEV decisions, successful demonstrations and observed failures in MuJoCo.">
+  <meta name="theme-color" content="#f5f4ee">
+  <meta property="og:title" content="RoboJEV — From state to motion.">
+  <meta property="og:description" content="An open robotics lab with five physical tasks, original-trial videos and transparent evaluation.">
+  <title>RoboJEV — From state to motion.</title>
   <link rel="icon" href="media/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
-<nav class="wrap"><a class="brand" href="#"><img src="media/icon.svg" alt="" width="30" height="30">RoboJEV</a><div><a href="#experiments">Experiments</a><a href="#method">Method</a><a href="#results">Results</a><a href="https://github.com/lykycy123/RoboJEV">GitHub ↗</a></div></nav>
-<main>
-<header class="wrap hero">
-  <div class="eyebrow"><span></span> AN OPEN ROBOTICS LAB · MUJOCO × JEV</div>
-  <h1>State.<br>Intent.<br><em>Motion.</em></h1>
-  <div class="hero-copy"><p>A language-driven controller meets contact-rich physics. One Franka Panda. Three tasks. Every action, observable.</p><a class="button" href="#experiments">Explore the experiments <span>↘</span></a><p class="small">Structured simulator state in. Cartesian motion out.<br>No camera input. No learned robot policy weights.</p></div>
-  <div class="hero-index">01—03<br><span>ROBOT MANIPULATION</span></div>
-</header>
-<section id="experiments" class="wrap section">
-  <div class="section-head"><p class="eyebrow">01 / EXPERIMENTS</p><h2>Three ways to move matter.</h2><p>The same four action heads control translation and fingers. Each task has its own physical success checks.</p></div>
-  <div class="experiments">
-    <article><div class="card-heading"><span>01</span><h3>Pick &amp; place</h3><span class="tag">GRASP</span></div><video controls playsinline preload="none" poster="media/pick_place.jpg" aria-label="Real JEV pick and place demonstration"><source src="media/pick_place.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/pick_place.mp4">Download MP4</a>.</video><p>Lift the cube, carry it into the marked region, release, and let it settle.</p><div class="card-meta">4 cm cube <span>12 cm target</span></div></article>
-    <article><div class="card-heading"><span>02</span><h3>Surface push</h3><span class="tag">CONTACT</span></div><video controls playsinline preload="none" poster="media/push.jpg" aria-label="Real JEV surface pushing demonstration"><source src="media/push.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/push.mp4">Download MP4</a>.</video><p>Close the empty fingers and slide the cube into the target. Grasping and lifting invalidate the trial.</p><div class="card-meta">Straight +X lanes <span>Surface friction 0.3</span></div></article>
-    <article><div class="card-heading"><span>03</span><h3>Stack on a pedestal</h3><span class="tag">SUPPORT</span></div><video controls playsinline preload="none" poster="media/stack.jpg" aria-label="Real JEV fixed pedestal stacking demonstration"><source src="media/stack.mp4" type="video/mp4">Your browser cannot play this video. <a href="media/stack.mp4">Download MP4</a>.</video><p>Place the cube on a fixed support. Check containment, support contact, release, and stability.</p><div class="card-meta">Fixed 8 × 8 × 4 cm base <span>Physical support</span></div></article>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="masthead"><nav class="wrap" aria-label="Main navigation">
+  <a class="brand" href="#"><span class="brand-mark" aria-hidden="true">R<span>↗</span></span>RoboJEV<span class="brand-sub">ROBOTICS LAB</span></a>
+  <div class="nav-links"><a href="#experiments">Experiments</a><a href="#results">Results</a><a href="#method">Method</a></div>
+  <a class="repo-link" href="https://github.com/lykycy123/RoboJEV">GitHub <span aria-hidden="true">↗</span></a>
+</nav></header>
+<main id="main">
+<section class="wrap hero" aria-labelledby="hero-title">
+  <div class="hero-copy"><p class="eyebrow"><span class="status-dot"></span> OPEN EXPERIMENTS / MUJOCO × JEV</p>
+    <h1 id="hero-title">From state<br>to <em>motion.</em></h1>
+    <p class="hero-description">One robot. Five physical tasks.<br>A closer look at what language-driven control can do — and where it fails.</p>
+    <div class="hero-actions"><a class="button primary" href="#experiments">Explore the experiments <span aria-hidden="true">↗</span></a><a class="text-link" href="#results">See the evidence ↓</a></div>
+    <p class="hero-footnote">Measured simulator state → intent → action</p>
   </div>
-  <p class="caption">Demonstrations use real JEV decisions and recorded probabilities. Playback follows simulation time; API waits are omitted. These are selected demonstrations, separate from the fixed-seed evaluation below.</p>
+  <figure class="hero-visual"><div class="visual-top"><span><i></i> SIMULATION OBSERVATORY</span><span>FRANKA PANDA</span></div>
+    <img src="media/lab-scene.jpg" width="525" height="361" alt="Franka Panda placing an orange cube beyond a red obstacle gate in the actual MuJoCo simulation" fetchpriority="high">
+    <div class="visual-callout"><span class="crosshair" aria-hidden="true">+</span><div>CONTACT. CONTROL. CORRECTION.<small>Actual evaluated scene · gate pick &amp; place</small></div></div>
+    <figcaption><span>STRUCTURED STATE IN</span><span class="visual-line"></span><span>PHYSICAL MOTION OUT</span></figcaption>
+  </figure>
 </section>
-<section id="method" class="wrap section">
-  <div class="section-head"><p class="eyebrow">02 / METHOD</p><h2>A visible decision loop.</h2><p>The simulator provides measurements. JEV chooses an intent, then chooses motion. A Cartesian controller executes and measures the result.</p></div>
-  <div class="pipeline"><div><span>OBSERVE</span><h3>Measured state</h3><p>Object pose, TCP, finger contacts, target geometry and recent actions.</p></div><b aria-hidden="true">→</b><div><span>JEV · STAGE 1</span><h3>Select intent</h3><p>A task-conditioned choice distribution over the immediate objective.</p></div><b aria-hidden="true">→</b><div><span>JEV · STAGE 2</span><h3>Select action</h3><p>X, Y, Z and gripper choices, conditioned on the selected intent.</p></div><b aria-hidden="true">→</b><div><span>EXECUTE</span><h3>Contact physics</h3><p>1 cm translation, Jacobian IK and MuJoCo. No object teleportation.</p></div></div>
-  <div class="notes"><p><strong>What this demonstrates</strong><br>Closed-loop, task-conditioned control from privileged simulator state, with independent physical evaluation.</p><p><strong>What remains limited</strong><br>No visual perception, real-robot deployment, free-base stacking, or general-purpose motion planning. API waits pause simulation.</p></div>
+<div class="wrap stat-strip" aria-label="Experiment overview"><div><strong>05</strong><span>physical tasks</span></div><div><strong id="trial-count">100</strong><span>evaluated episodes</span></div><div><strong>10</strong><span>seeds per task &amp; policy</span></div><p>Two independent policies.<br>Every completed failure counted.</p></div>
+<section id="experiments" class="wrap section">
+  <div class="section-heading"><div><p class="eyebrow">01 / EXPLORE THE LAB</p><h2>Watch a decision<br>become an action.</h2></div><p>Pick a task, then watch the original demonstration. Every movement comes from JEV decisions and physical contact.</p></div>
+  <div class="task-tabs" role="tablist" aria-label="Simulation task">
+    <button id="tab-peg_insert" role="tab" aria-selected="true" aria-controls="task-panel" data-task="peg_insert"><span>04</span>Peg insertion<i>NEW</i></button>
+    <button id="tab-obstacle_pick_place" role="tab" aria-selected="false" aria-controls="task-panel" tabindex="-1" data-task="obstacle_pick_place"><span>05</span>Gate pick &amp; place<i>NEW</i></button>
+    <button id="tab-pick_place" role="tab" aria-selected="false" aria-controls="task-panel" tabindex="-1" data-task="pick_place"><span>01</span>Pick &amp; place</button>
+    <button id="tab-push" role="tab" aria-selected="false" aria-controls="task-panel" tabindex="-1" data-task="push"><span>02</span>Surface push</button>
+    <button id="tab-stack" role="tab" aria-selected="false" aria-controls="task-panel" tabindex="-1" data-task="stack"><span>03</span>Pedestal stack</button>
+  </div>
+  <div id="task-panel" class="experiment-stage" role="tabpanel" aria-labelledby="tab-peg_insert">
+    <div class="player-area"><div class="player-toolbar"><span id="video-label">JEV / ORIGINAL EVALUATION</span><div class="outcome-switch" role="group" aria-label="Video outcome"><button data-outcome="success" aria-pressed="true">Success</button><button data-outcome="failure" aria-pressed="false">Failure</button></div></div>
+      <video id="experiment-video" controls playsinline preload="none" poster="media/peg_insert-success.jpg" aria-label="Peg insertion success demonstration"><source src="media/peg_insert-success.mp4" type="video/mp4">Download the <a href="media/peg_insert-success.mp4">demonstration</a>.</video>
+      <div id="missing-video" class="missing-video" hidden><span aria-hidden="true">✓</span><h3 id="missing-title">No natural failure recorded.</h3><p id="missing-description"></p></div>
+      <div class="player-footer"><span id="video-timing">Loading trial evidence…</span><a id="video-download" href="media/peg_insert-success.mp4">Open MP4 ↗</a></div>
+    </div>
+    <aside class="task-brief" aria-live="polite"><p id="task-category" class="eyebrow">PRECISION WITH CLEARANCE</p><h3 id="task-title">A little room<br>to get it right.</h3><p id="task-description">Insert a 20 mm peg into a 30 mm socket, release, and let it settle. A deliberately loose fit with real contact physics.</p><dl id="task-specs"></dl><div class="task-score"><span>JEV SUCCESS</span><strong id="task-rate">—</strong><small>10 fixed evaluation seeds</small></div><p id="task-provenance" class="caption"></p></aside>
+  </div>
+  <p class="caption playback-note">Simulation-time playback; API waits are omitted. New task videos are captured from the formal evaluation and end with a labeled two-second still. Original task videos use separate demonstration seeds.</p>
+  <noscript><p>Enable JavaScript to switch tasks and load results. Videos: <a href="media/peg_insert-success.mp4">insertion success</a>, <a href="media/obstacle_pick_place-success.mp4">gate success</a>, <a href="media/obstacle_pick_place-failure.mp4">gate failure</a>. <a href="data/challenge-evaluation.md">Read the evaluation report.</a></p></noscript>
 </section>
-<section id="results" class="wrap section">
-  <div class="section-head"><p class="eyebrow">03 / EVIDENCE</p><h2>Results, with the denominator.</h2><p>Ten fixed seeds per task and policy. JEV and the independent rule baseline share physics and success checks. Failed trials remain in the results.</p></div>
-  <div class="table-scroll"><table><thead><tr><th>Task</th><th>JEV</th><th>Rule baseline</th><th>JEV 95% Wilson interval</th></tr></thead><tbody id="results-body"><tr><td colspan="4">Loading the published evaluation…</td></tr></tbody></table></div>
-  <p class="caption">The Wilson 95% interval expresses uncertainty in JEV's success rate under the evaluated conditions. With only ten trials per task, even 10/10 successes does not guarantee future success.</p>
-  <p id="results-note" class="caption"></p><p><a href="data/results.json">Evaluation summary JSON ↗</a> <span class="separator">/</span> <a href="https://github.com/lykycy123/RoboJEV/blob/main/docs/evaluation.md">Protocol &amp; failure analysis ↗</a></p>
+<section id="results" class="evidence-band"><div class="wrap section">
+  <div class="section-heading"><div><p class="eyebrow">02 / MEASURED, NOT ASSUMED</p><h2>The results.<br>Including the misses.</h2></div><p>Ten fixed seeds for each task and policy. Shared physics and success checks. Independent rule baseline. Two frozen campaigns.</p></div>
+  <div class="results-layout"><div><div class="chart-heading"><h3>Successful trials</h3><div class="legend"><span><i class="jev-key"></i>JEV</span><span><i class="rule-key"></i>Rule</span></div></div><div id="result-chart" class="result-chart" aria-label="JEV and rule success counts by task">Loading results…</div></div>
+    <aside class="finding"><span class="finding-number">05</span><p class="eyebrow">THE HARDER CASE</p><h3>Getting the cube past the gate is only part of the task.</h3><p>The arm must clear it, too. Link collisions during lowering exposed a limit of the current controller.</p><a class="text-link" href="#challenges">Inspect the failures <span aria-hidden="true">↘</span></a></aside>
+  </div>
+  <details class="metrics-details"><summary>Full results &amp; confidence intervals <span>5 tasks / 100 episodes</span></summary><div class="table-scroll"><table><thead><tr><th>Task</th><th>JEV</th><th>Rule</th><th>JEV Wilson 95%</th></tr></thead><tbody id="results-body"></tbody></table></div><p id="results-note" class="caption"></p></details>
+  <p class="caption">Ten trials are a small sample. Even 10/10 does not guarantee future success. These results describe the evaluated scenes, not general-purpose manipulation.</p>
+  <div class="resource-links"><a href="data/results.json">Results JSON ↗</a><a href="https://github.com/lykycy123/RoboJEV/blob/main/docs/evaluation.md">Evaluation protocol ↗</a></div>
+</div></section>
+<section id="challenges" class="wrap section">
+  <div class="section-heading"><div><p class="eyebrow">03 / UNDERSTANDING FAILURE</p><h2>A failure is a result.</h2></div><p>Seven failed trials in the new 40-episode campaign. Their original outcomes, measurements and boundaries are preserved.</p></div>
+  <div class="failure-grid"><article><span class="failure-index">01 / CONTACT</span><h3>The cube clears.<br>The arm collides.</h3><p>Four gate trials ended when link5 touched a post during lowering.</p><div class="boundary"><strong>15.03–44.00 <small>N</small></strong><span>measured force / 0.05 N limit</span></div><button class="text-link" id="watch-failure">Watch the failed trial ↗</button></article>
+    <article><span class="failure-index">02 / DIRECTION</span><h3>A wrong turn,<br>repeated.</h3><p>Two JEV trials requested +Y while the measured grasp direction was −Y. The object was never grasped.</p><div class="boundary"><strong>302 / 305</strong><span>rejected actions / 350-decision budget</span></div></article>
+    <article><span class="failure-index">03 / VALIDATION</span><h3>An inconsistent<br>model choice.</h3><p>One JEV response selected an option below the maximum probability. That action was not executed.</p><div class="boundary"><strong>0.49 <small>&lt; 0.50</small></strong><span>selected probability / maximum</span></div></article></div>
+  <details class="failure-details"><summary>Inspect all seven failed trials <span>JEV + rule baseline</span></summary><div class="table-scroll"><table><thead><tr><th>Task / policy</th><th>Seed</th><th>Decision</th><th>Evidence &amp; boundary</th></tr></thead><tbody id="challenge-failures"></tbody></table></div></details>
+  <div class="resource-links"><a href="data/challenge-evaluation.md">Full failure report ↗</a><a href="data/challenge-episodes.json">All 40 challenge trials ↗</a></div>
 </section>
-<section class="wrap section start"><div><p class="eyebrow">04 / REPRODUCE</p><h2>Run the lab.</h2><p>Python 3.11, MuJoCo and a JEV API key for model control.<br>The rule baseline runs without a key or GPU.</p><a class="button" href="https://github.com/lykycy123/RoboJEV#quick-start">Installation &amp; commands ↗</a></div><pre><code>robojev --task pick_place --policy rule
-robojev --task push --policy jev
-robojev --task stack --policy jev \
-  --record-video</code></pre></section>
+<section id="method" class="wrap section method-section"><div class="section-heading"><div><p class="eyebrow">04 / INSIDE THE LOOP</p><h2>State. Intent. Motion.</h2></div><p>JEV receives structured simulator measurements. Physical success is checked independently of what the model says.</p></div>
+  <div class="pipeline"><article><span>01 / OBSERVE</span><h3>Read the state.</h3><p>Object poses, tool position, finger contacts and geometric relationships.</p></article><article><span>02 / INTENT</span><h3>Choose the next step.</h3><p>JEV selects a task-specific intent: approach, grasp, carry, lower or release.</p></article><article><span>03 / ACTION</span><h3>Choose the motion.</h3><p>A second JEV decision selects X, Y, Z directions and a gripper command.</p></article><article><span>04 / EXECUTE</span><h3>Let physics respond.</h3><p>Cartesian control, real contact, measured feedback and independent evaluation.</p></article></div>
+  <p class="method-limit">Structured state, no camera input. No rule fallback for JEV. Evaluated in MuJoCo; real-robot generalization remains untested.</p>
+</section>
+<section class="wrap section start"><div><p class="eyebrow">05 / OPEN &amp; REPRODUCIBLE</p><h2>Your turn at the controls.</h2><p>Python 3.11 · MuJoCo · Franka Panda<br>Run the rule baseline locally, or bring a TypeSafe key for JEV.</p><a class="button primary" href="https://github.com/lykycy123/RoboJEV#quick-start">Get the code <span aria-hidden="true">↗</span></a></div><div class="terminal"><div><span></span><span></span><span></span><small>START AN EXPERIMENT</small></div><pre><code><span># Loose-fit insertion</span>
+robojev --task peg_insert --policy rule
+
+<span># Language-driven obstacle transport</span>
+robojev --task obstacle_pick_place --policy jev</code></pre></div></section>
 </main>
-<footer class="wrap"><a class="brand" href="#">RoboJEV</a><p>Apache-2.0 · MuJoCo / MuJoCo Menagerie / TypeSafe JEV<br>Independent project; not an official product of these providers.</p><a href="https://github.com/lykycy123/RoboJEV/blob/main/README.zh-CN.md">中文说明 ↗</a></footer>
-<script src="app.js"></script>
+<footer class="wrap"><a class="brand" href="#">RoboJEV<span class="footer-dot">.</span></a><p>An open robotics laboratory.<br>Apache-2.0 · MuJoCo · TypeSafe JEV</p><div><a href="https://github.com/lykycy123/RoboJEV">Source ↗</a><a href="https://github.com/lykycy123/RoboJEV/blob/main/README.zh-CN.md" lang="zh-CN">中文说明 ↗</a><small>Independent project. Not an official upstream product.</small></div></footer>
 </body>
 </html>

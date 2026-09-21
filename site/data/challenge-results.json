@@ -1,159 +1,21 @@
 {
-  "schema_version": 2,
-  "campaigns": [
-    {
-      "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d",
-      "seeds": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9
-      ],
-      "episodes": 60,
-      "expected": 60,
-      "complete": true,
-      "tasks": [
-        "pick_place",
-        "push",
-        "stack"
-      ]
-    },
-    {
-      "source_sha256": "d5a76ee31cd893072c2a54a41f5b0d151c4a2789c9cff4af029b9d15a7f8afdd",
-      "seeds": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9
-      ],
-      "episodes": 40,
-      "expected": 40,
-      "complete": true,
-      "tasks": [
-        "peg_insert",
-        "obstacle_pick_place"
-      ],
-      "recording": "exact physical state captured during evaluated trials"
-    }
+  "source_sha256": "d5a76ee31cd893072c2a54a41f5b0d151c4a2789c9cff4af029b9d15a7f8afdd",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
   ],
+  "complete": true,
+  "episodes": 40,
+  "expected": 40,
   "tasks": {
-    "pick_place": {
-      "rule": {
-        "episodes": 10,
-        "successes": 10,
-        "success_rate": 1.0,
-        "wilson_95": [
-          0.7224672001371218,
-          0.9999999999999999
-        ],
-        "failures": [],
-        "mean_wall_s": 6.158649202715606,
-        "mean_decisions": 130.1,
-        "api_p50_ms": null,
-        "api_p95_ms": null,
-        "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d"
-      },
-      "jev": {
-        "episodes": 10,
-        "successes": 10,
-        "success_rate": 1.0,
-        "wilson_95": [
-          0.7224672001371218,
-          0.9999999999999999
-        ],
-        "failures": [],
-        "mean_wall_s": 224.86429497878999,
-        "mean_decisions": 128.3,
-        "api_p50_ms": 1237.9693128168583,
-        "api_p95_ms": 4552.838461659849,
-        "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d"
-      }
-    },
-    "push": {
-      "rule": {
-        "episodes": 10,
-        "successes": 10,
-        "success_rate": 1.0,
-        "wilson_95": [
-          0.7224672001371218,
-          0.9999999999999999
-        ],
-        "failures": [],
-        "mean_wall_s": 2.174180818814784,
-        "mean_decisions": 88.9,
-        "api_p50_ms": null,
-        "api_p95_ms": null,
-        "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d"
-      },
-      "jev": {
-        "episodes": 10,
-        "successes": 10,
-        "success_rate": 1.0,
-        "wilson_95": [
-          0.7224672001371218,
-          0.9999999999999999
-        ],
-        "failures": [],
-        "mean_wall_s": 126.75434781871736,
-        "mean_decisions": 81.7,
-        "api_p50_ms": 1227.775389328599,
-        "api_p95_ms": 3509.165225923057,
-        "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d"
-      }
-    },
-    "stack": {
-      "rule": {
-        "episodes": 10,
-        "successes": 10,
-        "success_rate": 1.0,
-        "wilson_95": [
-          0.7224672001371218,
-          0.9999999999999999
-        ],
-        "failures": [],
-        "mean_wall_s": 5.896125816041604,
-        "mean_decisions": 125.2,
-        "api_p50_ms": null,
-        "api_p95_ms": null,
-        "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d"
-      },
-      "jev": {
-        "episodes": 10,
-        "successes": 8,
-        "success_rate": 0.8,
-        "wilson_95": [
-          0.49016247153665027,
-          0.943317848545623
-        ],
-        "failures": [
-          {
-            "seed": 4,
-            "reason": "policy_error"
-          },
-          {
-            "seed": 7,
-            "reason": "policy_error"
-          }
-        ],
-        "mean_wall_s": 182.4278402757831,
-        "mean_decisions": 126.9,
-        "api_p50_ms": 1247.199126984924,
-        "api_p95_ms": 2169.4835017435225,
-        "source_sha256": "0b53d84fb2ed647fb339817a6b3845cd851da68a77699b469d6ca06c867f399d"
-      }
-    },
     "peg_insert": {
       "rule": {
         "episodes": 10,
@@ -425,20 +287,5 @@
         "source_sha256": "d5a76ee31cd893072c2a54a41f5b0d151c4a2789c9cff4af029b9d15a7f8afdd"
       }
     }
-  },
-  "episodes": 100,
-  "expected": 100,
-  "complete": true,
-  "seeds": [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9
-  ]
+  }
 }

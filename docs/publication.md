@@ -6,6 +6,8 @@ The following stay private: real environment files, authentication material, pro
 
 Robot meshes are fetched from a pinned upstream revision and verified against a committed manifest. They are not vendored in Git. Their original license is retained.
 
+The challenge campaign fingerprints raw Python source bytes. Three source files retain their evaluated line endings through explicit `.gitattributes` entries so a fresh checkout matches the frozen experiment fingerprint. The homepage scene image is a crop of the original gate-success terminal screenshot; demonstration videos are unchanged.
+
 Before pushing, `scripts/check_publication.py` checks the actual Git index, rejected path patterns, private deployment strings and file size. It scans text without printing matched secrets. The release process also reviews `git diff --cached`, links and the complete initial history. This automated check is a backstop, not a substitute for reviewing selected files.
 
-GitHub Pages serves only `site/` through its dedicated workflow. No live model API, credentials or raw logs are shipped to browsers. Videos are selected demonstrations; the separate evaluation includes failures and identifies seed coverage. The project makes no claims of novel task decomposition or two-stage model control.
+GitHub Pages serves only `site/` through its dedicated workflow. No live model API, credentials or raw logs are shipped to browsers. Original task videos use separate demonstration seeds; challenge success/failure videos come from recorded formal evaluation states and identify their seeds. Public failure evidence includes selected measured values and choice-probability checks, never complete prompts, raw responses, credentials or token usage. The project makes no claims of novel task decomposition or two-stage model control.

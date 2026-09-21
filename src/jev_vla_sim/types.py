@@ -55,7 +55,8 @@ class SceneState:
     recent_actions: list[dict]
     task: str = TASK
     task_id: str = "pick_place"
-    schema_version: int = 2
+    schema_version: int = 3
+    obstacles: list[dict] = field(default_factory=list)
     frame: str = "robot_base"
     units: str = "m"
     quaternion_order: str = "wxyz"

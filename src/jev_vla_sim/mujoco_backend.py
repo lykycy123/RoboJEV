@@ -85,6 +85,9 @@ def scene_xml(cfg: Config, assets: Path = ASSET_ROOT):
         marker.set("contype", "1")
         marker.set("conaffinity", "1")
         marker.set("friction", "1 0.005 0.0001")
+    from .challenge import CHALLENGES, add_scene
+    if cfg.task in CHALLENGES:
+        add_scene(world, cube, target, cfg)
     ET.SubElement(world, "camera", name="overview", pos="1.08 -1.10 0.96",
                   xyaxes="0.879 0.477 0 -0.267 0.492 0.829", fovy="57")
     ET.SubElement(world, "light", pos="0.4 -0.5 1.5", dir="0 0 -1", diffuse="0.8 0.8 0.8")
@@ -113,10 +116,16 @@ class MujocoBackend:
         self.cube_id = self.model.body("cube").id
         self.cube_geom = self.model.geom("cube_geom").id
         self.cube_q = self.model.joint("cube_free").qposadr[0]
+        if cfg.task == "peg_insert":
+            # Viscous rotational damping removes cylinder/floor contact chatter;
+            # translational motion and all grasp/placement checks remain physical.
+            address = self.model.joint("cube_free").dofadr[0]
+            self.model.dof_damping[address+3:address+6] = .005
         self.finger_bodies = [self.model.body(f"{side}_finger").id for side in ("left", "right")]
         self.target_mocap = self.model.body("target").mocapid[0]
         self.renderer = mujoco.Renderer(self.model, height=720, width=1280) if record_video else None
         self.frame_sink = None
+        self.capture_state = False
         self.tick = self.step_id = self.generation = 0
         self.episode_id = "uninitialized"
         self.history = []
@@ -143,14 +152,22 @@ class MujocoBackend:
         mujoco.mj_objectVelocity(self.model, self.data, mujoco.mjtObj.mjOBJ_BODY, self.cube_id, velocity, 0)
         normal_forces = [0., 0.]
         support_contact = robot_contact = False
+        gate_force = socket_force = 0.
         for i in range(self.data.ncon):
             contact = self.data.contact[i]
+            names = [self.model.geom(int(g)).name or "" for g in (contact.geom1, contact.geom2)]
+            if any(n.startswith("gate_") for n in names):
+                force = np.zeros(6)
+                mujoco.mj_contactForce(self.model, self.data, i, force)
+                gate_force += max(0., float(force[0]))
             if self.cube_geom not in (contact.geom1, contact.geom2):
                 continue
             other = contact.geom2 if contact.geom1 == self.cube_geom else contact.geom1
             body = self.model.geom_bodyid[other]
             force = np.zeros(6)
             mujoco.mj_contactForce(self.model, self.data, i, force)
+            if any(n.startswith("socket_wall_") for n in names):
+                socket_force += max(0., float(force[0]))
             if other == self.model.geom("target_marker").id and force[0] > .01:
                 support_contact = True
             if body != 0 and body != self.model.body("target").id and force[0] > .01:
@@ -168,6 +185,8 @@ class MujocoBackend:
             "cube_velocity": velocity[3:].tolist(), "cube_angular_velocity": velocity[:3].tolist(),
             "target_pos": self.target_pos.tolist(),
             "support_contact": support_contact, "robot_object_contact": robot_contact,
+            "gate_force_n": gate_force, "socket_force_n": socket_force,
+            "gate_center_y": float(getattr(self, "gate_center_y", 0)),
             "pusher_front_extent_m": .012,
             "gripper_width": float(self.data.qpos[self.finger_q].sum()),
             "gripper_target": self.gripper_target, "finger_contacts": contacts,
@@ -216,6 +235,9 @@ class MujocoBackend:
         cube, self.target_pos = sample_layout(seed, self.config)
         self.data.qpos[self.cube_q:self.cube_q + 7] = [*cube, 1, 0, 0, 0]
         self.data.mocap_pos[self.target_mocap] = self.target_pos + [0, 0, .0005]
+        if self.config.task == "obstacle_pick_place":
+            self.gate_center_y = float(np.random.default_rng(seed).uniform(-.035, .035))
+            self.data.mocap_pos[self.model.body("gate").mocapid[0]] = [.51, self.gate_center_y, self.config.table_z]
         mujoco.mj_forward(self.model, self.data)
         raw = self._raw()
         self.reference_quat = np.array(raw["tcp_quat"])
@@ -233,10 +255,14 @@ class MujocoBackend:
                            self.history, generation=self.generation)
 
     def _capture(self):
-        if self.renderer is not None and self.frame_sink is not None:
+        if (self.renderer is not None or self.capture_state) and self.frame_sink is not None:
             if self.tick * self.config.physics_dt + 1e-9 >= self.next_frame_time:
-                self.renderer.update_scene(self.data, camera="overview")
-                self.frame_sink(self.renderer.render())
+                if self.capture_state:
+                    self.frame_sink({k: getattr(self.data, k).copy() for k in
+                                     ("qpos", "qvel", "act", "ctrl", "mocap_pos", "mocap_quat")})
+                else:
+                    self.renderer.update_scene(self.data, camera="overview")
+                    self.frame_sink(self.renderer.render())
                 self.next_frame_time += 1 / self.config.video_fps
 
     def execute(self, decision: EefDecision):
@@ -244,7 +270,9 @@ class MujocoBackend:
         before = np.array(state.robot["tcp_position"])
         target, grip, reason = self.guard.resolve(state, decision)
         self.step_id += 1
-        delta = decision.delta(self.config.step_m)
+        step_m = state.relations.get("action_step_m", self.config.step_m)
+        delta = decision.delta(step_m)
+        position_tolerance = min(self.config.position_tolerance_m, step_m*.4)
         if target is None:
             result = ExecutionResult(state.state_id, False, reason, delta.tolist(), [0., 0., 0.],
                                      0, 0, 0, self.gripper_target)
@@ -280,11 +308,11 @@ class MujocoBackend:
             if success or failure:
                 break
             if (i + 1 >= minimum and decision.gripper == "hold" and np.any(delta)
-                    and position_error <= self.config.position_tolerance_m
+                    and position_error <= position_tolerance
                     and orientation_error <= self.config.orientation_tolerance_rad):
                 break
         measured = np.array(raw["tcp_pos"]) - before
-        converged = (position_error <= self.config.position_tolerance_m
+        converged = (position_error <= position_tolerance
                      and orientation_error <= self.config.orientation_tolerance_rad)
         reason = "task_success" if success and failure is None else "executed" if converged else "tracking_timeout"
         result = ExecutionResult(state.state_id, True, reason,
