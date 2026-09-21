@@ -11,7 +11,7 @@ jobs:
         with:
           python-version: '3.11'
           cache: pip
-      - run: pip install -e '.[test,video]'
+      - run: pip install -e '.[test,video,ui]'
       - run: python scripts/fetch_panda.py
       - run: ruff check src tests scripts
       - run: pytest -q

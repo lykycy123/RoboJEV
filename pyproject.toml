@@ -14,14 +14,19 @@ dependencies = ["numpy==1.26.4", "httpx==0.28.1", "PyYAML==6.0.2", "mujoco==3.3.
 [project.optional-dependencies]
 test = ["pytest==8.3.5", "ruff==0.11.13"]
 video = ["Pillow==11.2.1", "imageio==2.37.0", "imageio-ffmpeg==0.6.0"]
+ui = ["fastapi==0.115.12", "uvicorn==0.34.2", "pydantic==2.11.3", "Pillow==11.2.1", "imageio==2.37.0", "imageio-ffmpeg==0.6.0"]
 
 [project.scripts]
 robojev = "jev_vla_sim.cli:main"
+robojev-ui = "robojev_ui.app:main"
 jev-sim = "jev_vla_sim.cli:main"
 jev-sim-doctor = "jev_vla_sim.doctor:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+robojev_ui = ["static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

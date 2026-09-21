@@ -78,3 +78,16 @@ python scripts/evaluate_suite.py --workers 4
 项目仅支持 MuJoCo；不包含视觉感知、真实机器人部署或通用规划能力。公开仓库保留代码、配置、许可证、精选截图、压缩视频和脱敏成绩；完整日志、token 审计、计算集群信息、真实密钥和代理设置均不公开。
 
 代码采用 Apache-2.0。MuJoCo、Panda 资产和 TypeSafe JEV 的来源见 [第三方说明](THIRD_PARTY.md)。本项目不宣称两阶段策略为原创方法。
+### 浏览器实验控制台
+
+安装一次可选依赖后，可以在本地浏览器中配置和运行 RoboJEV，无需修改配置文件：
+
+```bash
+python -m pip install -e '.[ui]'
+robojev-ui
+# 打开 http://127.0.0.1:8767/
+```
+
+控制台支持五个任务、规则策略或 JEV、配对批量实验、种子、并发数和原始状态捕获。历史记录保存在被 Git 忽略的 `runs/ui/` SQLite 目录中；停止批次后已经完成的试次会保留。TypeSafe Key 默认只在本次会话使用，不会进入命令行或日志；勾选“Remember on this machine”后才会以严格权限写入用户私有配置文件。远程 Linux 服务器可使用 `ssh -N -L 8767:127.0.0.1:8767 user@host`，然后打开同一个本地地址。控制台只监听本机。
+
+控制台需要 Linux 或 WSL2；当前验证的 MuJoCo 环境和离屏渲染使用 Linux 图形后端。物理计算不需要 GPU；录像生成需要可用的 EGL 或 OSMesa，若当前节点没有图形设备，可在 GPU 节点上从运行详情页重新生成。
