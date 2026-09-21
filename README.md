@@ -29,13 +29,19 @@ RoboJEV is a small, inspectable robotics laboratory. JEV receives **structured s
 
 ## Demo presentation
 
-| Pick & place | Surface push | Stack on a pedestal |
-|:---:|:---:|:---:|
-| [![Pick & place](site/media/pick_place.jpg)](https://lykycy123.github.io/RoboJEV/#experiments) | [![Surface push](site/media/push.jpg)](https://lykycy123.github.io/RoboJEV/#experiments) | [![Stack](site/media/stack.jpg)](https://lykycy123.github.io/RoboJEV/#experiments) |
-| Lift, transport, release | Slide without grasping | Release onto a fixed support |
-| [MP4](site/media/pick_place.mp4) | [MP4](site/media/push.mp4) | [MP4](site/media/stack.mp4) |
+### Part 1 — Successful demonstrations
 
-The displays show actual API distributions. Videos follow **simulation time and omit API waits**; they are not real-time inference demonstrations. The original three video seeds are separate from formal evaluation seeds; the new challenge videos below come directly from evaluated trials. The stack task uses a **fixed pedestal**, not two free cubes. Push layouts vary the start, lane and travel distance along +X.
+| Pick & place | Surface push | Pedestal stack | Peg insertion | Gate pick & place |
+|:---:|:---:|:---:|:---:|:---:|
+| [![Pick & place](site/media/pick_place.jpg)](https://lykycy123.github.io/RoboJEV/?task=pick_place&outcome=success#experiments)<br>[MP4](site/media/pick_place.mp4) · seed 1000 | [![Surface push](site/media/push.jpg)](https://lykycy123.github.io/RoboJEV/?task=push&outcome=success#experiments)<br>[MP4](site/media/push.mp4) · seed 1000 | [![Pedestal stack](site/media/stack.jpg)](https://lykycy123.github.io/RoboJEV/?task=stack&outcome=success#experiments)<br>[MP4](site/media/stack.mp4) · seed 1000 | [![Peg insertion](site/media/peg_insert-success.jpg)](https://lykycy123.github.io/RoboJEV/?task=peg_insert&outcome=success#experiments)<br>[MP4](site/media/peg_insert-success.mp4) · seed 0 | [![Gate pick & place](site/media/obstacle_pick_place-success.jpg)](https://lykycy123.github.io/RoboJEV/?task=obstacle_pick_place&outcome=success#experiments)<br>[MP4](site/media/obstacle_pick_place-success.mp4) · seed 2 |
+
+### Part 2 — Failed demonstrations
+
+| Pick & place | Surface push | Pedestal stack | Peg insertion | Gate pick & place |
+|:---:|:---:|:---:|:---:|:---:|
+| 10/10 succeeded. No natural failure video. | 10/10 succeeded. No natural failure video. | 2/10 failed; no failure recording in the original campaign.<br>[Failure evidence](docs/evaluation.md#response-validation-failure) | 10/10 succeeded. No natural failure video. | [![Gate pick & place](site/media/obstacle_pick_place-failure.jpg)](https://lykycy123.github.io/RoboJEV/?task=obstacle_pick_place&outcome=failure#experiments)<br>[MP4](site/media/obstacle_pick_place-failure.mp4) · seed 0 |
+
+All five tasks appear in the same order in both parts. Videos show real JEV decisions and follow **simulation time; API waits are omitted**. The original three success videos use separate demonstration seeds; insertion and gate recordings come directly from formal evaluation. Stack uses a **fixed pedestal**. Its two validation failures were not recorded as videos in the original campaign; their evidence remains in the report.
 
 ## Results
 

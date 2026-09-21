@@ -23,7 +23,7 @@ python scripts/evaluate_suite.py --tasks peg_insert obstacle_pick_place --worker
 python scripts/render_captured_episode.py runs/robojev-evaluation/RUN_ID
 ```
 
-录像直接渲染正式回合中保存的物理状态，不重跑模型或物理轨迹。每项选择种子最小的成功和自然失败回合；若全部成功则注明无自然失败录像。末尾附带两秒结果静帧，播放省略 API 等待。成功和失败视频均展示在页面的新增任务区。
+录像直接渲染正式回合中保存的物理状态，不重跑模型或物理轨迹。每项选择种子最小的成功和自然失败回合；若全部成功则注明无自然失败录像。末尾附带两秒结果静帧，播放省略 API 等待。下方演示展示按成功、失败两部分列出全部五个任务。
 
 <img src="site/media/banner.svg" alt="RoboJEV — State. Intent. Motion." width="100%">
 
@@ -33,13 +33,21 @@ python scripts/render_captured_episode.py runs/robojev-evaluation/RUN_ID
 
 JEV 不接收图像。程序将仿真的物体位姿、末端位姿、夹爪开度和接触关系转换为结构化状态；JEV 先选择意图，再选择 XYZ 方向及夹爪动作。控制器把方向转换成通常总长 1 cm 的位移，插销近孔阶段为 4 mm，用 IK 和真实接触物理执行。
 
-| 任务 | 行为与边界 | 演示 |
-|---|---|---|
-| 抓放 | 抓起方块，搬入目标区并释放 | [视频](site/media/pick_place.mp4) |
-| 推移 | 用闭合夹爪推入目标区，禁止夹取或抬升；布局沿 +X 变化 | [视频](site/media/push.mp4) |
-| 堆叠 | 将方块放到固定底座上，不是两个自由物体堆叠 | [视频](site/media/stack.mp4) |
+## 演示展示
 
-视频概率来自真实 API 响应，按照仿真时间播放，省略 API 等待；视频长度不等于真实运行时间。规则策略仅用于独立对照，绝不代替 JEV 决策。
+### Part 1 — 成功演示
+
+| 抓放 | 表面推移 | 固定底座堆叠 | 插销 | 跨障碍抓放 |
+|:---:|:---:|:---:|:---:|:---:|
+| [![抓放](site/media/pick_place.jpg)](https://lykycy123.github.io/RoboJEV/?task=pick_place&outcome=success#experiments)<br>[MP4](site/media/pick_place.mp4) · seed 1000 | [![表面推移](site/media/push.jpg)](https://lykycy123.github.io/RoboJEV/?task=push&outcome=success#experiments)<br>[MP4](site/media/push.mp4) · seed 1000 | [![固定底座堆叠](site/media/stack.jpg)](https://lykycy123.github.io/RoboJEV/?task=stack&outcome=success#experiments)<br>[MP4](site/media/stack.mp4) · seed 1000 | [![插销](site/media/peg_insert-success.jpg)](https://lykycy123.github.io/RoboJEV/?task=peg_insert&outcome=success#experiments)<br>[MP4](site/media/peg_insert-success.mp4) · seed 0 | [![跨障碍抓放](site/media/obstacle_pick_place-success.jpg)](https://lykycy123.github.io/RoboJEV/?task=obstacle_pick_place&outcome=success#experiments)<br>[MP4](site/media/obstacle_pick_place-success.mp4) · seed 2 |
+
+### Part 2 — 失败演示
+
+| 抓放 | 表面推移 | 固定底座堆叠 | 插销 | 跨障碍抓放 |
+|:---:|:---:|:---:|:---:|:---:|
+| 10/10 成功，无自然失败录像。 | 10/10 成功，无自然失败录像。 | 2/10 失败；原评测未录制失败视频。<br>[失败证据](docs/evaluation.md#response-validation-failure) | 10/10 成功，无自然失败录像。 | [![跨障碍抓放](site/media/obstacle_pick_place-failure.jpg)](https://lykycy123.github.io/RoboJEV/?task=obstacle_pick_place&outcome=failure#experiments)<br>[MP4](site/media/obstacle_pick_place-failure.mp4) · seed 0 |
+
+上下两部分均按相同顺序展示五个任务。前三项成功录像使用独立演示种子；新增两项录像来自正式评测。堆叠使用固定底座，其两次响应校验失败在原评测中未录制视频，失败证据保留在报告中。视频按仿真时间播放，省略 API 等待，概率来自真实 API 响应。
 
 原始三任务评测：抓放 JEV 10/10，规则 10/10；推移 JEV 10/10，规则 10/10；堆叠 JEV 8/10，规则 10/10。该版本合计 60/60 轮，完整结果与置信区间见评测报告。新增两项任务的 40 轮评测单独记录版本、失败边界与录像来源。
 
