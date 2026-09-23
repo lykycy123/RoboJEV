@@ -205,7 +205,7 @@ def create_app(root=None, data=None):
             from .reports import completed_results, markdown, summary
             completed = completed_results(job)
             csv_file = io.StringIO()
-            fields = ["task", "policy", "observation_profile", "seed", "success", "end_reason", "decisions", "executed",
+            fields = ["task", "policy", "observation_profile", "seed", "success", "end_reason", "outcome_category", "decisions", "executed",
                       "rejected", "wall_s", "api_requests", "input_tokens", "output_tokens"]
             writer = csv.DictWriter(csv_file, fieldnames=fields, extrasaction="ignore")
             writer.writeheader()

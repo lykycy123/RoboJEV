@@ -11,7 +11,14 @@ import numpy as np
 
 from jev_vla_sim.config import Config
 from jev_vla_sim.recording import source_fingerprint, write_json
-from robojev_ui.reports import completed_results, group_keys, markdown, summary
+from robojev_ui.reports import (
+    completed_results,
+    group_keys,
+    markdown,
+    outcome_category,
+    select_demonstration,
+    summary,
+)
 
 
 def contact_evidence(episode, result):
@@ -23,6 +30,8 @@ def contact_evidence(episode, result):
         raise ValueError("Use the frozen source for original-state contact analysis")
     b = MujocoBackend(Config(**meta["config"]))
     try:
+        if meta["assets"] != b.asset_manifest:
+            raise ValueError("Assets differ from original-state contact analysis")
         with np.load(episode/"frames.npz", allow_pickle=False) as frames:
             for key in ("qpos", "qvel", "act", "ctrl", "mocap_pos", "mocap_quat"):
                 getattr(b.data, key)[:] = frames[key][-1]
@@ -67,8 +76,11 @@ def analyze(job, data):
             row = json.loads(line)
             exchange = row.get("exchange", {})
             key = (slot["task"], slot.get("observation_profile", "legacy"))
-            if "latency_ms" in exchange:
-                requests.setdefault(key, []).append(exchange["latency_ms"])
+            # Timings are recorded per intent/motor stage, not on the outer exchange.
+            timings = [exchange[stage]["latency_ms"] for stage in ("intent", "motor")
+                       if "latency_ms" in exchange.get(stage, {})]
+            if timings:
+                requests.setdefault(key, []).append(sum(timings))
             if row.get("event") == "decision":
                 s = row["state"]
                 r, d = s["relations"], row["decision"]
@@ -93,6 +105,7 @@ def analyze(job, data):
                     tail[-1]["execution"] = {k: ex[k] for k in ("executed", "reason", "delta_measured_m", "failure")}
         item = {"task": slot["task"], "observation_profile": slot.get("observation_profile", "legacy"),
                 "seed": slot["seed"], "success": result["success"], "end_reason": result["end_reason"],
+                "outcome_category": outcome_category(result),
                 "initial_state_sha256": digest, "mismatch_counts": {k: sum(x["kind"] == k for x in mismatches)
                    for k in ("approach_direction_mismatch", "premature_lower", "lift_motor_mismatch")},
                 "max_consecutive_rejections": max_rejections}
@@ -102,6 +115,7 @@ def analyze(job, data):
             item["contacts"] = contact_evidence(episode, result)
         evidence.append(item)
     latencies = [{"task": task, "observation_profile": profile,
+                  "timed_decisions": len(values),
                   "decision_api_p50_ms": float(np.percentile(values, 50)),
                   "decision_api_p95_ms": float(np.percentile(values, 95))}
                  for (task, profile), values in requests.items()]
@@ -114,6 +128,10 @@ def main():
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--render", action="store_true")
     args = p.parse_args()
+    if args.render:
+        # Select GL before contact reconstruction imports MuJoCo in this process.
+        from jev_vla_sim.rendering import select_renderer
+        select_renderer()
     job = json.loads(args.job.read_text())
     data = args.job.parent.parent
     args.output.mkdir(parents=True, exist_ok=True)
@@ -123,7 +141,7 @@ def main():
     results = completed_results(job)
     write_json(args.output/"episodes.json", results)
     with (args.output/"episodes.csv").open("w", newline="") as f:
-        fields = ["task", "observation_profile", "seed", "success", "end_reason", "decisions", "rejected", "wall_s",
+        fields = ["task", "observation_profile", "seed", "success", "end_reason", "outcome_category", "decisions", "rejected", "wall_s",
                   "observation_ms", "mean_request_bytes", "api_requests", "input_tokens", "output_tokens"]
         writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
@@ -132,8 +150,6 @@ def main():
     (args.output/"report.md").write_text(text, encoding="utf-8")
     write_json(args.output/"provenance.json", {k: job[k] for k in ("source_sha256", "assets", "configs", "created", "spec")})
     if args.render:
-        from jev_vla_sim.rendering import select_renderer
-        select_renderer()
         from render_captured_episode import render
         entries = []
         for task, policy, profile in group_keys(job):
@@ -146,10 +162,12 @@ def main():
                     entries.append({"task": task, "observation_profile": profile, "outcome": name,
                                     "available": False, "reason": "No natural "+name})
                     continue
-                slot = min(candidates, key=lambda s: s["seed"])
+                slot = select_demonstration(candidates)
                 output = args.output/"media"/f"{task}-{profile}-{name}.mp4"
                 entry = render(data/slot["episode"], output)
-                entry.update(observation_profile=profile, available=True)
+                entry.update(observation_profile=profile, available=True, outcome=name,
+                             outcome_category=outcome_category(slot["result"]),
+                             selection="Prefer task failure, then response-validation failure, then other errors; lowest seed within category")
                 entries.append(entry)
                 print(json.dumps({"task": task, "profile": profile, "outcome": name, "seed": slot["seed"]}), flush=True)
         write_json(args.output/"demonstrations.json", entries)
