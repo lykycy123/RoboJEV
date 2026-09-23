@@ -20,6 +20,16 @@ Inspect job exit states and the queue after use. Only cancel jobs belonging to t
 
 ## Challenge evaluation and exact recordings
 
+The normal observation is `legacy`. The opt-in 40-trial spatial-information comparison is:
+
+```bash
+python scripts/evaluate_observation.py --workers 2 --data runs/observation-comparison
+python scripts/analyze_observation.py runs/observation-comparison/JOB_ID/job.json \
+  --output artifacts/observation-comparison --render
+```
+
+Use a GPU node for the final `--render` step. The full-geometry profile is a simulator-only ablation and should not be presented as the deployable sensing requirement.
+
 ```bash
 python scripts/evaluate_suite.py --tasks peg_insert obstacle_pick_place \
   --workers 4 --capture-video-state

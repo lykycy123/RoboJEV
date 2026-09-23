@@ -60,9 +60,13 @@ class SceneState:
     frame: str = "robot_base"
     units: str = "m"
     quaternion_order: str = "wxyz"
+    spatial_geometry: dict | None = None
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        result = asdict(self)
+        if self.spatial_geometry is None:
+            result.pop("spatial_geometry")
+        return result
 
 
 @dataclass

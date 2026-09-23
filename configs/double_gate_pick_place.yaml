@@ -1,0 +1,4 @@
+task: double_gate_pick_place
+max_decisions: 500
+jev_stages: 2
+observation_profile: legacy

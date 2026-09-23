@@ -11,7 +11,7 @@ import numpy as np
 
 from .geometry import direction, relation, rotation_matrix
 
-CHALLENGES = ("peg_insert", "obstacle_pick_place")
+CHALLENGES = ("peg_insert", "obstacle_pick_place", "double_gate_pick_place")
 PEG_RADIUS, PEG_LENGTH = .010, .060
 HOLE_RADIUS, RIM_Z, FLOOR_Z = .015, .040, .008
 GATE_X, GATE_HEIGHT, GATE_GAP = .51, .120, .070
@@ -19,6 +19,10 @@ CONTACT_LIMIT = .05
 
 
 def layout(seed, cfg):
+    if cfg.task == "double_gate_pick_place":
+        from .double_gate import sample_layout
+        cube, target, _ = sample_layout(seed, cfg)
+        return cube, target
     rng = np.random.default_rng(seed)
     if cfg.task == "peg_insert":
         return (np.array([rng.uniform(.42, .46), rng.uniform(-.17, -.10), cfg.table_z + .031]),
@@ -29,6 +33,10 @@ def layout(seed, cfg):
 
 
 def add_scene(world, cube, target, cfg):
+    if cfg.task == "double_gate_pick_place":
+        from .double_gate import add_gates
+        add_gates(world, cfg)
+        return
     if cfg.task == "peg_insert":
         geom = cube.find("geom")
         geom.set("type", "cylinder")
@@ -93,6 +101,9 @@ def measurements(raw, cfg):
 
 
 def enrich_state(state, raw, cfg):
+    if cfg.task == "double_gate_pick_place":
+        from .double_gate import enrich_state as enrich_double
+        return enrich_double(state, raw, cfg)
     p, tcp, target = [np.asarray(raw[k]) for k in ("cube_pos", "tcp_pos", "target_pos")]
     r, m = state.relations, measurements(raw, cfg)
     held = state.robot["held_object"] == "cube"

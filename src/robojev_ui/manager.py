@@ -175,19 +175,21 @@ class Manager:
             job_id = uuid.uuid4().hex
             folder = self.data / job_id
             folder.mkdir()
-            configs = {t: json_data(spec.config(t).to_dict()) for t in spec.tasks}
+            configs = json_data(spec.configurations())
             for task, cfg in configs.items():
                 atomic_json(folder / f"{task}.json", cfg)
             job = {"id": job_id, "created": now(), "name": spec.name or "RoboJEV experiment",
                    "status": "running", "spec": spec.model_dump(), "configs": configs,
                    "source_sha256": source_fingerprint(), "assets": assets, "ui_version": __version__,
-                   "custom": bool(spec.step_m != .01 or spec.max_decisions or
+                   "custom": bool(spec.step_m != .01 or spec.max_decisions or spec.observation_profile != "legacy" or
+                                  spec.comparison != "none" or
                                   spec.connection.model != "jev-1.13.0" or
                                   spec.connection.api_url != "https://api.typesafe.ai/v1/systemone"),
                    "slots": [{"id": str(i), "task": t, "policy": p, "seed": s,
+                              "observation_profile": profile,
                               "status": "pending", "attempt": 0, "result": None,
                               "video_status": "pending" if spec.capture else "disabled"}
-                             for i, (t, p, s) in enumerate(spec.slots())]}
+                             for i, (t, p, s, profile) in enumerate(spec.trial_slots())]}
             self.save(job)
             self.launch(job_id, lambda: self.run(job_id, key))
             return self.get(job_id)
@@ -220,7 +222,7 @@ class Manager:
                 raise ValueError("Source or assets changed; copy configuration into a new experiment")
             spec = Experiment(**job["spec"])
             for task, cfg in job["configs"].items():
-                expected = json_data(spec.config(task).to_dict())
+                expected = json_data(spec.configurations()[task])
                 if cfg != expected or read_json(self.data / job_id / f"{task}.json") != cfg:
                     raise ValueError("Configuration changed; create a new experiment")
             key, _ = self.credentials.resolve()
@@ -239,9 +241,10 @@ class Manager:
         return None, None
 
     def command(self, job, slot, output):
+        config_key = Experiment.config_key(slot["task"], slot.get("observation_profile", "legacy"))
         args = [sys.executable, "-m", "jev_vla_sim.cli", "--task", slot["task"],
                 "--policy", slot["policy"], "--seed", str(slot["seed"]),
-                "--config", str(self.data / job["id"] / f"{slot['task']}.json"),
+                "--config", str(self.data / job["id"] / f"{config_key}.json"),
                 "--env-file", str(self.data / "no-credentials.env"), "--output", str(output)]
         if job["spec"]["capture"]:
             args.append("--capture-video-state")
@@ -322,6 +325,7 @@ class Manager:
             slot = job["slots"][int(slot_id)]
             result, episode = self.result_for(job, slot)
             if result and result["end_reason"] != "runtime_error" and code in (0, 2):
+                result.setdefault("observation_profile", slot.get("observation_profile", "legacy"))
                 slot.update(status="completed", result=result, episode=str(episode.relative_to(self.data)))
             else:
                 slot.update(status="cancelled" if self.stop_event.is_set() else "error",
@@ -332,23 +336,32 @@ class Manager:
     def run(self, job_id, key):
         job = self.get(job_id)
         pending = [s["id"] for s in job["slots"] if s["status"] != "completed"]
+        groups = [[slot] for slot in pending]
+        if job["spec"].get("comparison") == "observation":
+            pairs = {}
+            for s in job["slots"]:
+                if s["id"] in pending:
+                    pairs.setdefault((s["task"], s["seed"]), []).append(s["id"])
+            groups = list(pairs.values())
+
+        def run_group(slots):
+            for slot in slots:
+                if self.stop_event.is_set():
+                    return
+                self.trial(job_id, slot, key)
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=job["spec"]["workers"]) as pool:
-            futures = [pool.submit(self.trial, job_id, slot, key) for slot in pending]
+            futures = [pool.submit(run_group, group) for group in groups]
             for future in futures:
                 future.result()
         job = self.get(job_id)
-        if job["spec"]["capture"] and not self.stop_event.is_set():
+        if job["spec"]["capture"] and not job["spec"].get("defer_render") and not self.stop_event.is_set():
             job["status"] = "rendering"
             self.save(job)
-            for task in job["spec"]["tasks"]:
-                for policy in ("rule", "jev"):
-                    for success in (True, False):
-                        candidates = [s for s in job["slots"] if s["task"] == task and s["policy"] == policy
-                                      and s["status"] == "completed" and s["result"]["success"] == success]
-                        if candidates and not self.stop_event.is_set():
-                            first = min(candidates, key=lambda s: s["seed"])
-                            if first.get("video_status") != "ready":
-                                self.render_one(job_id, first["id"])
+            from .reports import demonstration_slots
+            for first in demonstration_slots(job):
+                if first and not self.stop_event.is_set() and first.get("video_status") != "ready":
+                    self.render_one(job_id, first["id"])
         job = self.get(job_id)
         job["status"] = ("cancelled" if self.stop_event.is_set() else
                          "completed" if all(s["status"] == "completed" for s in job["slots"]) else "error")

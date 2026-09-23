@@ -202,9 +202,10 @@ def create_app(root=None, data=None):
     def report(job_id: str):
         try:
             job = manager.detail(job_id)
-            completed = [s["result"] for s in job["slots"] if s["status"] == "completed"]
+            from .reports import completed_results, markdown, summary
+            completed = completed_results(job)
             csv_file = io.StringIO()
-            fields = ["task", "policy", "seed", "success", "end_reason", "decisions", "executed",
+            fields = ["task", "policy", "observation_profile", "seed", "success", "end_reason", "decisions", "executed",
                       "rejected", "wall_s", "api_requests", "input_tokens", "output_tokens"]
             writer = csv.DictWriter(csv_file, fieldnames=fields, extrasaction="ignore")
             writer.writeheader()
@@ -228,7 +229,8 @@ def create_app(root=None, data=None):
                 archive.writestr("configuration.json", json.dumps(job["spec"], indent=2))
                 archive.writestr("results.json", json.dumps(completed, indent=2, ensure_ascii=False))
                 archive.writestr("results.csv", csv_file.getvalue())
-                archive.writestr("report.md", "\n".join(text))
+                archive.writestr("report.md", markdown(job))
+                archive.writestr("summary.json", json.dumps(summary(job), indent=2, ensure_ascii=False))
                 archive.writestr("provenance.json", json.dumps({k: job[k] for k in
                                   ("id", "created", "configs", "source_sha256", "assets", "ui_version", "custom")},
                                   indent=2))

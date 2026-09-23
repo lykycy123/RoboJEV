@@ -9,6 +9,7 @@ The three original tasks use a 4 cm, 50 g cube. All tasks use a Panda with downw
 | `stack` | Fixed 8×8×4 cm pedestal at randomized target XY | Cube previously lifted at least 5 cm; full footprint over pedestal; bottom within 5 mm of support surface; actual support contact; release and settle |
 | `peg_insert` | Upright 20 mm diameter, 60 mm long, 35 g cylinder; fixed 30 mm socket, 40 mm rim height and 8 mm floor | Previously lifted; depth >=30 mm; centerline end offsets <=5 mm; tilt <=5 degrees; actual floor support; release and settle |
 | `obstacle_pick_place` | 40 mm cube; 70 mm opening between 200 mm posts, 120 mm crossbar, 24 mm obstacle thickness; randomized lane/start/target | Carry the whole cube through the opening above the crossbar with >=5 mm bottom clearance; no robot/object gate contact >0.05 N; release in the 120 mm target and settle |
+| `double_gate_pick_place` | 40 mm cube; two 90 mm openings with 100/120 mm crossbars, 90 mm lane offset, randomized seed-mirrored layout | Cross gate_1 then change lane and cross gate_2 with >=5 mm clearance, no gate contact >0.05 N, then release in the target and settle |
 
 Settling requires speed below 0.02 m/s and angular speed below 0.2 rad/s continuously for 0.5 s. Grasp tasks require jaw opening at least 6.5 cm and both fingers detached. Push requires no robot contact; lifting more than 1 cm or a two-finger grasp invalidates the trial. Falling off the table terminates a trial.
 

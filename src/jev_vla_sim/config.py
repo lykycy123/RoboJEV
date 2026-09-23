@@ -30,11 +30,14 @@ class Config:
     history_length: int = 8
     video_fps: int = 30
     jev_stages: int = 2
+    observation_profile: str = "legacy"
 
     def __post_init__(self):
         from .tasks import TASKS
         if self.task not in TASKS:
             raise ValueError("unknown task")
+        if self.observation_profile not in ("legacy", "full_geometry"):
+            raise ValueError("unknown observation profile")
         if type(self.jev_stages) is not int or self.jev_stages not in (1, 2):
             raise ValueError("jev_stages must be 1 or 2")
         for name in ("step_m", "physics_dt", "min_action_s", "max_action_s",

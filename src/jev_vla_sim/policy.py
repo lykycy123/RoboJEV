@@ -265,6 +265,7 @@ class JevPolicy:
 
     def _query(self, exchange, heads):
         started = time.perf_counter()
+        exchange["request_bytes"] = len(json.dumps(exchange["request"], ensure_ascii=False).encode("utf-8"))
         try:
             return self._query_impl(exchange, heads)
         finally:

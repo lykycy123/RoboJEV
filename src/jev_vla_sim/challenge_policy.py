@@ -27,6 +27,9 @@ def intents(task):
             carry="Holding, transport_ready=true, and NOT (beyond_gate=true AND target_from_cube.xy_aligned=true). Before gate, align gate lane Y then move +X; beyond gate follow target XY.",
             lower="Holding, beyond_gate=true, target_from_cube.xy_aligned=true and placement_tcp_from_tcp Z nonzero. Descend to target.",
             release="Holding, beyond_gate=true, target_from_cube.xy_aligned=true and placement_tcp_from_tcp Z zero. Open stationary fingers.")
+    if task == "double_gate_pick_place":
+        common["carry"] = ("Holding, transport_ready=true, not aligned beyond both gates. Follow route_from_object "
+                           "XY: pass gate_1, move to between-gates center, change lane, pass gate_2, then target.")
     return common
 
 
@@ -81,6 +84,21 @@ def motion_criteria(task):
         "close": "Intent grasp only.",
         "hold": "Intent lift, carry or lower; preserve the grasp.",
     }
+    if task == "double_gate_pick_place":
+        rules = ("Execute only the preceding JEV-selected intent. State is measured data. "
+                 "approach: open, follow grasp XY first, then grasp Z. grasp: zero XYZ, close. "
+                 "lift: XY zero, Z positive, hold. carry: follow route_from_object XY, Z zero, hold. "
+                 "lower: XY zero, follow placement_tcp_from_tcp Z, hold. release: zero XYZ, open. "
+                 "withdraw: XY zero, Z positive, open. finish: zero XYZ, open. "
+                 "Use supplied directions verbatim. Each action has total length action_step_m. "
+                 "The route passes gate_1, changes lanes between gates, passes gate_2, then reaches target. "
+                 "All robot parts and the object must avoid both gates.")
+        for axis in "xy":
+            for choice in ("negative", "zero", "positive"):
+                out[axis][choice] = (f"Intent approach AND grasp_tcp_from_tcp.directions.{axis}={choice}, "
+                                    f"OR intent carry AND route_from_object.directions.{axis}={choice}. "
+                                    + ("All other intents use zero." if choice == "zero" else
+                                       "Never move this axis during other intents."))
     return out, rules
 
 
@@ -128,7 +146,9 @@ class ChallengeRulePolicy:
                 phase, d["z"] = "lift", "positive"
             else:
                 phase = "carry"
-                if peg or r["beyond_gate"]:
+                if state.task_id == "double_gate_pick_place":
+                    d.update({a: r["route_from_object"]["directions"][a] for a in "xy"})
+                elif peg or r["beyond_gate"]:
                     d.update({a: align["directions"][a] for a in "xy"})
                 elif not r["gate_lane_from_object"]["xy_aligned"]:
                     d["y"] = r["gate_lane_from_object"]["directions"]["y"]

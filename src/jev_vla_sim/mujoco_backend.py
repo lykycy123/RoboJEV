@@ -138,6 +138,12 @@ class MujocoBackend:
         self.jacp = np.zeros((3, self.model.nv))
         self.jacr = np.zeros((3, self.model.nv))
         self.next_frame_time = 0.
+        self.gates = []
+        self.spatial = None
+        self.observation_ms = 0.
+        if cfg.observation_profile == "full_geometry":
+            from .spatial import SpatialObservation
+            self.spatial = SpatialObservation(self.model)
 
     def close(self):
         if self.renderer is not None:
@@ -153,6 +159,7 @@ class MujocoBackend:
         normal_forces = [0., 0.]
         support_contact = robot_contact = False
         gate_force = socket_force = 0.
+        gate_contacts = []
         for i in range(self.data.ncon):
             contact = self.data.contact[i]
             names = [self.model.geom(int(g)).name or "" for g in (contact.geom1, contact.geom2)]
@@ -160,6 +167,10 @@ class MujocoBackend:
                 force = np.zeros(6)
                 mujoco.mj_contactForce(self.model, self.data, i, force)
                 gate_force += max(0., float(force[0]))
+                if self.config.task == "double_gate_pick_place" and force[0] > 0:
+                    gate_contacts.append({"geoms": names, "normal_force_n": float(force[0]),
+                                          "bodies": [self.model.body(self.model.geom_bodyid[int(g)]).name
+                                                     for g in (contact.geom1, contact.geom2)]})
             if self.cube_geom not in (contact.geom1, contact.geom2):
                 continue
             other = contact.geom2 if contact.geom1 == self.cube_geom else contact.geom1
@@ -192,6 +203,8 @@ class MujocoBackend:
             "gripper_target": self.gripper_target, "finger_contacts": contacts,
             "finger_normal_forces_n": normal_forces,
         }
+        if self.config.task == "double_gate_pick_place":
+            self.last_raw.update(gates=self.gates, gate_contacts=gate_contacts)
         return self.last_raw
 
     def _control(self, target):
@@ -227,6 +240,7 @@ class MujocoBackend:
         self.episode_id, self.tick, self.step_id = episode_id, 0, 0
         self.history = []
         self.guard, self.evaluator = ActionGuard(self.config), SuccessEvaluator(self.config)
+        self.observation_ms = 0.
         self.gripper_target = "open"
         self.data.qpos[self.arm_q] = HOME
         self.data.qpos[self.finger_q] = .04
@@ -238,6 +252,11 @@ class MujocoBackend:
         if self.config.task == "obstacle_pick_place":
             self.gate_center_y = float(np.random.default_rng(seed).uniform(-.035, .035))
             self.data.mocap_pos[self.model.body("gate").mocapid[0]] = [.51, self.gate_center_y, self.config.table_z]
+        if self.config.task == "double_gate_pick_place":
+            from .double_gate import sample_layout as double_layout
+            self.gates = double_layout(seed, self.config)[2]
+            for gate in self.gates:
+                self.data.mocap_pos[self.model.body(gate["id"]).mocapid[0]] = gate["center"]
         mujoco.mj_forward(self.model, self.data)
         raw = self._raw()
         self.reference_quat = np.array(raw["tcp_quat"])
@@ -251,8 +270,14 @@ class MujocoBackend:
         return self.observe()
 
     def observe(self):
-        return build_state(self._raw(), self.config, self.episode_id, self.step_id, self.tick,
-                           self.history, generation=self.generation)
+        started = time.perf_counter()
+        state = build_state(self._raw(), self.config, self.episode_id, self.step_id, self.tick,
+                            self.history, generation=self.generation)
+        if self.spatial:
+            from dataclasses import replace
+            state = replace(state, schema_version=4, spatial_geometry=self.spatial.capture(self.data, self.config))
+        self.observation_ms += (time.perf_counter()-started)*1000
+        return state
 
     def _capture(self):
         if (self.renderer is not None or self.capture_state) and self.frame_sink is not None:

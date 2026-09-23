@@ -19,6 +19,10 @@ class TaskSpec:
 
 
 TASKS = {
+    "double_gate_pick_place": TaskSpec("double_gate_pick_place", "Staggered double-gate pick & place",
+        "Grasp the amber cube, carry it through gate_1 then gate_2, above each crossbar and BETWEEN "
+        "its posts. Change lanes between the gates. Place and release in the cyan target. "
+        "No robot part or object may touch either gate.", .12, 0., 500),
     "peg_insert": TaskSpec("peg_insert", "Peg insertion", "Grasp the upright amber cylindrical peg, lift, "
                            "align its axis with the cyan socket, insert at least 30 mm, then release.", .030, .008, 450),
     "obstacle_pick_place": TaskSpec("obstacle_pick_place", "Gate pick & place", "Grasp the amber cube, "
@@ -66,6 +70,9 @@ class TaskEvaluator:
     def __init__(self, config):
         from .challenge import CHALLENGES, ChallengeEvaluator
         self.challenge = ChallengeEvaluator(config) if config.task in CHALLENGES else None
+        if config.task == "double_gate_pick_place":
+            from .double_gate import DoubleGateEvaluator
+            self.challenge = DoubleGateEvaluator(config)
         self.config = config
         self.ever_lifted = False
         self.ever_pushed = False

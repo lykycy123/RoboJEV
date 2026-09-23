@@ -22,6 +22,8 @@ def main():
     parser.add_argument("--task", choices=tuple(TASKS))
     parser.add_argument("--seeds", type=int, nargs="+", help="Explicit evaluation seeds (default 0..9)")
     parser.add_argument("--config")
+    parser.add_argument("--observation-profile", choices=("legacy", "full_geometry"),
+                        help="Default: legacy. Full geometry is privileged simulation-only ablation input.")
     parser.add_argument("--env-file", default=".env")
     parser.add_argument("--policy", choices=("jev", "rule", "replay"), default="jev")
     parser.add_argument("--replay")
@@ -60,11 +62,13 @@ def main():
         if not os.environ.get("TYPESAFE_API_KEY"):
             parser.error("TYPESAFE_API_KEY is not set; configure the remote .env file")
     cfg = load_config(args.config)
+    if args.observation_profile:
+        cfg = replace(cfg, observation_profile=args.observation_profile)
     if args.task:
         cfg = replace(cfg, task=args.task)
     if not args.config:
         cfg = replace(cfg, max_decisions=TASKS[cfg.task].max_decisions)
-    if cfg.task in ("push", "peg_insert", "obstacle_pick_place") and cfg.jev_stages != 2:
+    if cfg.task in ("push", "peg_insert", "obstacle_pick_place", "double_gate_pick_place") and cfg.jev_stages != 2:
         parser.error("this task requires two-stage control")
     if args.seeds and (not args.evaluate or min(args.seeds) < 0 or len(set(args.seeds)) != len(args.seeds)):
         parser.error("--seeds requires evaluation and unique nonnegative values")

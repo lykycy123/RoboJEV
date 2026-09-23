@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from jev_vla_sim.config import Config
 from jev_vla_sim.tasks import TASKS
 
-ORDER = ["pick_place", "push", "stack", "peg_insert", "obstacle_pick_place"]
+ORDER = ["pick_place", "push", "stack", "peg_insert", "obstacle_pick_place", "double_gate_pick_place"]
 
 
 class Connection(BaseModel):
@@ -32,7 +32,7 @@ class Experiment(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str = Field(default="", max_length=100)
     mode: Literal["single", "batch"] = "single"
-    tasks: list[str] = Field(default_factory=lambda: ["pick_place"], min_length=1, max_length=5)
+    tasks: list[str] = Field(default_factory=lambda: ["pick_place"], min_length=1, max_length=6)
     policy: Literal["rule", "jev", "paired"] = "rule"
     seed: int = Field(default=1000, ge=0, le=2147483647, strict=True)
     count: int = Field(default=1, ge=1, le=100, strict=True)
@@ -41,11 +41,17 @@ class Experiment(BaseModel):
     connection: Connection = Field(default_factory=Connection)
     max_decisions: dict[str, int] = Field(default_factory=dict)
     step_m: float = Field(default=.01, gt=0, le=.02)
+    observation_profile: Literal["legacy", "full_geometry"] = "legacy"
+    comparison: Literal["none", "observation"] = "none"
+    defer_render: bool = False
 
     @model_validator(mode="after")
     def valid_experiment(self):
         if len(set(self.tasks)) != len(self.tasks) or any(t not in TASKS for t in self.tasks):
             raise ValueError("Choose unique supported tasks")
+        if self.comparison == "observation" and (self.mode != "batch" or self.policy != "jev"
+                or set(self.tasks) - {"obstacle_pick_place", "double_gate_pick_place"}):
+            raise ValueError("Observation comparison requires a JEV batch of gate tasks")
         if self.mode == "single" and (len(self.tasks) != 1 or self.count != 1 or self.policy == "paired"):
             raise ValueError("Single runs require one task, one trial and one policy")
         if set(self.max_decisions) - set(TASKS):
@@ -58,10 +64,24 @@ class Experiment(BaseModel):
             self.config(task)
         return self
 
-    def config(self, task):
+    def config(self, task, profile=None):
         connection = self.connection.model_dump(exclude={"provider"})
         return replace(Config(), task=task, max_decisions=self.max_decisions.get(task, TASKS[task].max_decisions),
-                       step_m=self.step_m, **connection)
+                       step_m=self.step_m, observation_profile=profile or self.observation_profile, **connection)
+
+    @staticmethod
+    def config_key(task, profile):
+        return task if profile == "legacy" else task+"-full_geometry"
+
+    def configurations(self):
+        profiles = ("legacy", "full_geometry") if self.comparison == "observation" else (self.observation_profile,)
+        return {self.config_key(t, p): self.config(t, p).to_dict() for t in self.tasks for p in profiles}
+
+    def trial_slots(self):
+        if self.comparison == "observation":
+            return [(t, "jev", s, p) for t in self.tasks for s in range(self.seed, self.seed+self.count)
+                    for p in (("legacy", "full_geometry") if s % 2 == 0 else ("full_geometry", "legacy"))]
+        return [(t, p, s, self.observation_profile) for t, p, s in self.slots()]
 
     def slots(self):
         policies = ["rule", "jev"] if self.policy == "paired" else [self.policy]

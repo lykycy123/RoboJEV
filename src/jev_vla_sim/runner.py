@@ -18,6 +18,7 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
     rejected, stalls, empty_grasps, oscillations = 0, 0, 0, 0
     state_ms, api_ms, physics_ms, render_ms = 0., 0., 0., 0.
     output_tokens = 0
+    request_bytes = []
     last_delta = None
     error_detail = None
     try:
@@ -37,6 +38,8 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
                 api_ms += (time.perf_counter()-started)*1000
                 record["exchange"] = policy.last_exchange
                 requests += policy.last_exchange.get("attempts", 0)
+                request_bytes.extend(policy.last_exchange[stage]["request_bytes"] for stage in ("intent", "motor")
+                                     if "request_bytes" in policy.last_exchange.get(stage, {}))
                 tokens += decision.metadata.get("usage", {}).get("input_tokens", 0)
                 output_tokens += decision.metadata.get("usage", {}).get("output_tokens", 0)
                 record["decision"] = decision.action_dict()
@@ -74,6 +77,8 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
                 if not decision_recorded:
                     api_ms += (time.perf_counter()-started)*1000
                     requests += exchange.get("attempts", 0)
+                    request_bytes.extend(exchange[stage]["request_bytes"] for stage in ("intent", "motor")
+                                         if "request_bytes" in exchange.get(stage, {}))
                     record["exchange"] = exchange
                     for stage in ("intent", "motor"):
                         usage = exchange.get(stage, {}).get("response", {}).get("usage", {})
@@ -116,12 +121,16 @@ def run_episode(backend, policy, cfg: Config, run: Path, policy_name: str, seed:
                         "choice": answer.get("choice"), "selected_probability": probabilities.get(answer.get("choice")),
                         "maximum_probability": max(values)})
         result = {"episode_id": episode_id, "task": cfg.task, "seed": seed, "policy": policy_name,
+                  "observation_profile": cfg.observation_profile,
                   "success": bool(success), "end_reason": reason, "decisions": decisions,
                   "executed": executed, "rejected": rejected, "tracking_timeouts": stalls,
                   "empty_grasps": empty_grasps, "direction_reversals": oscillations,
                   "api_requests": requests, "input_tokens": tokens, "output_tokens": output_tokens, "wall_s": time.perf_counter()-start,
                   "state_ms": state_ms, "decision_ms": api_ms, "physics_ms": physics_ms,
                   "render_ms": render_ms, "simulation_time_s": backend.tick*cfg.physics_dt}
+        result["observation_ms"] = getattr(backend, "observation_ms", state_ms)
+        result["mean_request_bytes"] = sum(request_bytes)/len(request_bytes) if request_bytes else 0
+        result["max_request_bytes"] = max(request_bytes, default=0)
         if evaluator:
             result.update(failure=failure, final_measurements=evaluator.last)
         if capture:
