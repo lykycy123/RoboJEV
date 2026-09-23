@@ -103,7 +103,7 @@ robojev-ui
 # open http://127.0.0.1:8767/
 ```
 
-The console configures six tasks, including the new staggered double gate, rule or JEV policies, paired batches, seeds, workers and original-state capture for later videos. **Original input remains the default.** Full geometry is an optional simulator-only ablation; it assumes measurements that are difficult to obtain in reality. The **Set up 40-trial comparison** button pairs both observation profiles on both gate tasks. See [the experiment protocol](docs/observation-experiment.md).
+The console configures six tasks, including the new staggered double gate, rule or JEV policies, paired batches, seeds, workers and original-state capture for later videos. **Original input remains the default.** Full geometry is an optional simulator-only ablation; it assumes measurements that are difficult to obtain in reality. The **Set up 40-trial comparison** button pairs both observation profiles on both gate tasks. See [the experiment protocol](docs/observation-experiment.md) and [completed paired results and seven original-trial recordings](docs/observation-evaluation.md). Service interruptions are reported separately; this small campaign does not establish general superiority of either input.
 
 It keeps a local SQLite history under ignored `runs/ui/`, preserves completed trials when a batch is stopped, and never puts a TypeSafe key in commands or logs. Keys are session-only by default; selecting **Remember on this machine** stores a private file with restrictive permissions under the user config directory. On a remote Linux server, use `ssh -N -L 8767:127.0.0.1:8767 user@host` and open the same local URL. The console binds to localhost only.
 

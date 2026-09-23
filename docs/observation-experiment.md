@@ -2,6 +2,8 @@
 
 The normal RoboJEV input is the legacy structured state. It is the default in the CLI, configuration files and local console. The full-geometry input is an opt-in simulator-only ablation because complete link geometry and signed distances are difficult to obtain from a physical robot.
 
+The September 23, 2026 campaign is complete. See the [paired results, failure evidence and original-trial videos](observation-evaluation.md). The report separates service interruptions from physical failures and response-validation failures; the full-geometry profile remains an optional comparison condition.
+
 Run the paired campaign from a configured hpc3 checkout:
 
 ```bash
