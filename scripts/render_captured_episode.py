@@ -49,6 +49,16 @@ def render(episode, output):
                     context = contexts[max(0, int(context_index))]
                     dashboard.set_context(context["state"], exchange=context["exchange"])
                 last_image = dashboard.compose(pixels)
+                if "observation_profile" in meta["config"]:
+                    labeled = Image.fromarray(last_image)
+                    draw = ImageDraw.Draw(labeled)
+                    full = cfg.observation_profile == "full_geometry"
+                    draw.rectangle((22, 148, 187, 179), fill=(10, 16, 27))
+                    draw.text((28, 150), "FULL GEOMETRY" if full else "LEGACY / DEFAULT",
+                              font=dashboard.fonts[12], fill=(255, 178, 68) if full else (65, 210, 227))
+                    if full:
+                        draw.text((28, 166), "Simulation ablation only", font=dashboard.fonts[12], fill=(147, 165, 185))
+                    last_image = np.asarray(labeled)
                 writer.append_data(last_image)
                 frame_count += 1
                 if frame_count == 30:
@@ -74,6 +84,7 @@ def render(episode, output):
         backend.close()
     entry = {k: result[k] for k in ("task", "policy", "seed", "success", "decisions", "simulation_time_s", "wall_s")}
     entry.update(failure=result.get("failure"), source_sha256=meta["source_sha256"],
+                 observation_profile=cfg.observation_profile,
                  capture_sha256=hashlib.sha256((episode/"frames.npz").read_bytes()).hexdigest(),
                  video_sha256=hashlib.sha256(output.read_bytes()).hexdigest(), frames=frame_count+2*cfg.video_fps,
                  physical_frames=frame_count, fps=cfg.video_fps, terminal_still_s=2,

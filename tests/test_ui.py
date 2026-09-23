@@ -22,6 +22,29 @@ def test_ui_experiment_expands_paired_slots_and_validates_tasks():
     assert spec.config("peg_insert").max_decisions == 450
 
 
+def test_ui_comparison_preserves_group_identity_and_report(console, tmp_path):
+    client, manager = console
+    client.post("/api/credentials", json={"key": "test-observation-key"})
+    mock_command(manager, tmp_path, SIMULATOR)
+    spec = {"mode": "batch", "policy": "jev", "comparison": "observation", "seed": 0, "count": 2,
+            "tasks": ["double_gate_pick_place"], "workers": 2}
+    response = client.post("/api/experiments", json=spec)
+    assert response.status_code == 200
+    job = wait_job(manager, response.json()["id"])
+    assert len(job["slots"]) == 4 and job["status"] == "completed"
+    assert [s["observation_profile"] for s in job["slots"]] == ["legacy", "full_geometry", "full_geometry", "legacy"]
+    assert job["slots"][0]["finished"] <= job["slots"][1]["started"]
+    assert job["slots"][2]["finished"] <= job["slots"][3]["started"]
+    for slot in job["slots"]:
+        assert slot["result"]["observation_profile"] == slot["observation_profile"]
+    report = client.get(f"/api/experiments/{job['id']}/report")
+    with zipfile.ZipFile(io.BytesIO(report.content)) as archive:
+        groups = json.loads(archive.read("summary.json"))["groups"]
+        assert len(groups) == 2 and all(g["completed"] == 2 for g in groups)
+        assert b"simulator-only" in archive.read("report.md")
+        assert b"observation_profile" in archive.read("results.csv")
+
+
 def test_ui_credentials_are_redacted_and_saved_with_private_permissions(tmp_path, monkeypatch):
     credentials = Credentials(tmp_path, tmp_path / "config")
     credentials.set("secret-test-key", remember=True)
