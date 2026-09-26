@@ -118,3 +118,9 @@
 ## 可支持的结论
 
 在本轮小样本中，新增信息伴随部分试次结果变化，但没有消除整臂碰撞、意图/动作不一致或响应校验问题。单门框的可用配对尤其少，不能据此宣称完整几何普遍优于原有输入。正常复现继续使用原有输入；完整几何用于诊断信息不足是否可能参与失败，并作为后续独立实验的参考。
+
+## API interruption retry (separate status)
+
+The 18 slots classified as infrastructure interruptions in the original 40-trial comparison were resubmitted through `scripts/with_proxy.sh` and the hpc3 proxy bridge (Slurm job `647519`, retry job `4ab478783ebb4c7a9eead28c44495ce7`). The retry completed with 18/18 first-decision transport failures after three attempts per slot: no action executed, no physical failure occurred, and no recording was produced. It is not merged into the original 40 trials or the public 100-episode statistics. API transport errors, response-validation failures, and physical collisions remain separate categories.
+
+A separate credentialed request using a captured first-decision payload raised `httpx.ReadError` before any HTTP response. Anonymous GET/POST probes reached the endpoint through the bridge (405/403), whereas bypassing the bridge produced a connection error. This narrows the failure to the credentialed request path but does not distinguish a proxy closure from a provider-side closure, and it does not establish whether the key is valid. No raw payload, response, key or proxy address is published.

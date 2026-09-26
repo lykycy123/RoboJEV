@@ -128,6 +128,10 @@ evidence("data/demonstrations.json").then(entries => {
   selectTask(selectedTask, selectedOutcome, false);
 }).catch(() => { manifestFailed = true; renderVideo(); });
 
+evidence("data/observation-retry.json").then(retry => {
+  $("retry-status").textContent = `API-interruption retry complete: ${retry.completed_slots}/${retry.trials} slots ended as infrastructure failures after ${retry.attempts_per_slot} transport attempts each. ${retry.physical_failures} physical failures, ${retry.recordings} recordings; excluded from the published 100-episode denominator.`;
+}).catch(() => { $("retry-status").textContent = "API retry status unavailable. See the repository report."; });
+
 evidence("data/results.json").then(report => {
   results = report;
   $("trial-count").textContent = report.episodes;

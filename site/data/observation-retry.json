@@ -1,0 +1,18 @@
+{
+  "campaign": "observation-infrastructure-retry",
+  "job_id": "647519",
+  "retry_job_id": "4ab478783ebb4c7a9eead28c44495ce7",
+  "trials": 18,
+  "scope": "The 18 API-interrupted slots from the original 40-trial spatial-observation campaign",
+  "transport": "scripts/with_proxy.sh via the hpc3 login-node bridge",
+  "status": "completed_infrastructure_failure",
+  "published_in_denominator": false,
+  "completed_slots": 18,
+  "transport_failures": 18,
+  "physical_failures": 0,
+  "recordings": 0,
+  "attempts_per_slot": 3,
+  "executed_actions": 0,
+  "credentialed_probe": "httpx.ReadError before HTTP response",
+  "note": "The retry campaign is complete, but all 18 slots failed at the first API decision after three transport attempts. The TypeSafe transport error executed no action, so these are infrastructure failures rather than physical task failures. No recording was produced or inferred, and the retry remains outside the published 100-episode denominator."
+}

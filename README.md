@@ -63,6 +63,19 @@ The independent rule baseline uses the same physical scene and success checks. I
 
 New challenge recordings: [insertion success](site/media/peg_insert-success.mp4), [gate success](site/media/obstacle_pick_place-success.mp4), and [gate failure](site/media/obstacle_pick_place-failure.mp4). Insertion had no natural failure. Gate failures exposed arm-link collisions while lowering, repeated wrong-direction requests exhausting the decision budget, and one inconsistent model response. See [all seven failed trials and measured boundaries](docs/challenge-evaluation.md).
 
+### Spatial input comparison
+
+The [interactive comparison](https://lykycy123.github.io/RoboJEV/#observation) adds a staggered double gate and compares the default original observation with optional simulator-only full geometry. These 40 JEV trials are separate from the five-task, 100-episode evaluation above.
+
+| Task | Input | Success / 10 | Physical failure | Response validation | API interruption |
+|---|---|---:|---:|---:|---:|
+| Single gate | Original (default) | 0 | 1 | 1 | 8 |
+| Single gate | Full geometry | 1 | 1 | 0 | 8 |
+| Staggered double gate | Original (default) | 1 | 6 | 2 | 1 |
+| Staggered double gate | Full geometry | 2 | 4 | 3 | 1 |
+
+Seven original-trial [success and failure recordings](docs/observation-evaluation.md#原始试次录像) show the evaluated trajectories and collision boundaries. The 18 API interruptions were retried separately; none reached a physical action, so the small set of comparable pairs cannot establish an input advantage. Complete results and costs are in the [paired analysis](docs/observation-evaluation.md).
+
 ## How it works
 
 <p align="center">
@@ -170,3 +183,7 @@ Complete run logs, API responses and videos are written under ignored `runs/`. S
 RoboJEV code is released under [Apache-2.0](LICENSE). Robot assets come from [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie), pinned to commit `822c2d8f877dd166c5b7d3c9f7e3c3b6589473b7`, and retain their Apache-2.0 license. Simulation uses [MuJoCo](https://mujoco.org/); model inference uses [TypeSafe JEV](https://typesafe.ai/). See [THIRD_PARTY.md](THIRD_PARTY.md).
 
 This is an independent integration and experiment suite, not an official product of the upstream providers. Task decomposition, structured state and Cartesian control are established techniques; no novelty claim is made for the two-stage pattern.
+
+### API-interruption retry status
+
+The 18 slots classified as API transport interruptions in the spatial-observation campaign were resubmitted through the hpc3 proxy bridge (`sbatch` job `647519`, retry job `4ab478783ebb4c7a9eead28c44495ce7`). The retry completed with 18/18 slots failing at the first API decision after three transport attempts; 0 actions executed, 0 physical failures and 0 recordings. A separate credentialed request over the bridge raised `httpx.ReadError` before receiving an HTTP response. Anonymous requests reached the endpoint, while direct compute-node requests could not connect; this localizes the problem to the authenticated request path without proving whether the proxy or provider closed it. These infrastructure failures stay outside the published 100-episode denominator. See [`site/data/observation-retry.json`](site/data/observation-retry.json) for the public status record.
